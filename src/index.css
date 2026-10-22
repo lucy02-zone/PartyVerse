@@ -1545,3 +1545,220 @@ button:disabled {
     width: 100%;
   }
 }
+
+/* Undercover game */
+.undercover-page {
+  min-height: 100vh;
+  padding: 24px 18px 60px;
+  background: #f6f8ff;
+}
+
+.undercover-topbar {
+  max-width: 860px;
+  margin: 0 auto 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.undercover-badge {
+  padding: 9px 12px;
+  border: 1px solid #dfe8ff;
+  border-radius: 100px;
+  background: #edf4ff;
+  color: #2b5be6;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.undercover-panel {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 35px;
+  border: 1px solid #e7ebf6;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 15px 50px rgba(15, 23, 42, 0.05);
+  text-align: center;
+}
+
+.undercover-panel h1 {
+  margin: 15px 0 10px;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(27px, 5vw, 38px);
+  letter-spacing: -1.3px;
+}
+
+.undercover-subtitle {
+  color: #77758b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.undercover-card {
+  margin: 28px 0 20px;
+  padding: 28px 20px;
+  border: 1px solid #e6ecff;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fafcff, #f8fbff);
+}
+
+.undercover-icon {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 55px;
+}
+
+.undercover-card h2 {
+  margin: 10px 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 22px;
+}
+
+.undercover-card p {
+  color: #77758b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.undercover-word-box {
+  margin: 18px 0;
+  padding: 15px;
+  border: 1px dashed #8eb6ff;
+  border-radius: 12px;
+  background: white;
+  color: #2957d7;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.phase-progress {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 24px;
+}
+
+.phase-progress span {
+  width: 26px;
+  height: 5px;
+  border-radius: 10px;
+  background: #e7ebf6;
+}
+
+.phase-progress .progress-active {
+  background: #2b5be6;
+}
+
+.discussion-emoji {
+  font-size: 43px;
+}
+
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.player-chips span {
+  padding: 8px 12px;
+  border: 1px solid #e6ecff;
+  border-radius: 100px;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.undercover-card .primary-button,
+.undercover-card .secondary-button {
+  margin: 10px 5px 0;
+  cursor: pointer;
+}
+
+.voting-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.vote-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e9edf8;
+  border-radius: 12px;
+  color: #49445d;
+  cursor: pointer;
+  text-align: left;
+}
+
+.vote-option input {
+  accent-color: #2b5be6;
+}
+
+.vote-option.vote-selected {
+  border-color: #2b5be6;
+  background: #edf4ff;
+  color: #2b5be6;
+}
+
+.result-role-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.result-role-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid #e6ecff;
+  border-radius: 12px;
+  background: white;
+}
+
+.result-role-row span {
+  font-weight: 700;
+}
+
+.result-role-row strong {
+  text-transform: uppercase;
+  color: #2b5be6;
+}
+
+.result-role-row small {
+  grid-column: 1 / -1;
+  color: #5d667a;
+}
+
+.full-button {
+  width: 100%;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .undercover-page {
+    padding: 18px 12px 40px;
+  }
+
+  .undercover-panel {
+    padding: 23px 17px;
+  }
+
+  .undercover-topbar {
+    align-items: flex-start;
+  }
+
+  .undercover-card {
+    padding: 22px 14px;
+  }
+}
+

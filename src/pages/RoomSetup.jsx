@@ -97,6 +97,13 @@ export default function RoomSetup() {
       return;
     }
 
+    if (gameId === "undercover") {
+      navigate("/play/undercover", {
+        state: { players },
+      });
+      return;
+    }
+
     setMessage(`${game.title} gameplay is coming soon.`);
   }
 

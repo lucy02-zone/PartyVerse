@@ -4,6 +4,9 @@ import Home from "./pages/Home.jsx";
 import RoomSetup from "./pages/RoomSetup.jsx";
 import ImposterGame from "./games/imposter/ImposterGame.jsx";
 import MafiaGame from "./games/mafia/MafiaGame.jsx";
+import MafiaNight from "./games/mafia/MafiaNight.jsx";
+import MafiaDay from "./games/mafia/MafiaDay.jsx";
+import UndercoverGame from "./games/undercover/UndercoverGame.jsx";
 
 export default function App() {
   return (
@@ -12,7 +15,10 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/game/:gameId" element={<RoomSetup />} />
         <Route path="/play/imposter" element={<ImposterGame />} />
+        <Route path="/play/mafia/night" element={<MafiaNight />} />
+        <Route path="/play/mafia/day" element={<MafiaDay />} />
         <Route path="/play/mafia" element={<MafiaGame />} />
+        <Route path="/play/undercover" element={<UndercoverGame />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>
