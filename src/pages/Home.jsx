@@ -59,20 +59,20 @@ export default function Home() {
           <div className="hero-visual">
             <div className="visual-glow" />
             <div className="floating-card card-one">
-              <span>🕵️</span>
+              <span className="token-box token-imp">IMP</span>
               <div>
                 <strong>Who's the imposter?</strong>
                 <small>Trust nobody...</small>
               </div>
             </div>
             <div className="party-orbit">
-              <span className="orbit-emoji emoji-one">🎭</span>
-              <span className="orbit-emoji emoji-two">🎲</span>
-              <span className="orbit-emoji emoji-three">⚡</span>
-              <span className="orbit-center">🎉</span>
+              <span className="orbit-token token-one">UVC</span>
+              <span className="orbit-token token-two">QZ</span>
+              <span className="orbit-token token-three">RND</span>
+              <span className="orbit-center">GO</span>
             </div>
             <div className="floating-card card-two">
-              <span>🏆</span>
+              <span className="token-box token-win">WIN</span>
               <div>
                 <strong>Game on!</strong>
                 <small>Your crew is waiting</small>
@@ -99,7 +99,7 @@ export default function Home() {
         </section>
 
         <section className="about-section" id="about">
-          <div className="about-icon">💜</div>
+          <div className="about-icon">FUN</div>
           <div>
             <span className="section-kicker">BUILT FOR TOGETHERNESS</span>
             <h2>Good games. Great company.</h2>

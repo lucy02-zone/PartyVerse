@@ -246,32 +246,37 @@ a {
   transform: rotate(-7deg);
 }
 
-.orbit-emoji {
+.orbit-token {
   position: absolute;
   display: grid;
   place-items: center;
-  width: 60px;
-  height: 60px;
+  min-width: 58px;
+  height: 48px;
+  padding: 0 12px;
   border: 1px solid #eee9fa;
-  border-radius: 20px;
+  border-radius: 14px;
   background: white;
   box-shadow: 0 8px 25px #30204b10;
-  font-size: 29px;
+  color: #5a28d7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.emoji-one {
-  top: 10px;
+.token-one {
+  top: 12px;
   left: 22px;
   transform: rotate(-10deg);
 }
 
-.emoji-two {
+.token-two {
   right: -10px;
   top: 95px;
   transform: rotate(10deg);
 }
 
-.emoji-three {
+.token-three {
   bottom: 3px;
   left: 95px;
   transform: rotate(-8deg);
@@ -285,13 +290,13 @@ a {
   gap: 12px;
   padding: 15px;
   border: 1px solid #f0edf6;
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 14px 45px #38245d12;
+  border-radius: 18px;
+  background: #fffdfd;
+  box-shadow: 0 16px 40px rgba(71, 42, 114, 0.12);
 }
 
 .floating-card > span {
-  font-size: 28px;
+  font-size: 12px;
 }
 
 .floating-card div {
@@ -373,14 +378,15 @@ a {
 .game-card {
   overflow: hidden;
   border: 1px solid #eeebf5;
-  border-radius: 20px;
+  border-radius: 22px;
   background: white;
   transition: transform 0.22s, box-shadow 0.22s;
+  box-shadow: 0 12px 30px rgba(83, 46, 131, 0.05);
 }
 
 .game-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 18px 40px #30204b0d;
+  transform: translateY(-5px) rotate(-0.4deg);
+  box-shadow: 0 18px 40px rgba(62, 22, 88, 0.12);
 }
 
 .game-art {
@@ -412,13 +418,26 @@ a {
 }
 
 .game-emoji {
-  font-size: 65px;
-  filter: drop-shadow(0 8px 10px #00000010);
+  display: grid;
+  place-items: center;
+  min-width: 72px;
+  height: 60px;
+  padding: 0 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 15px 30px rgba(79, 48, 122, 0.08);
+  color: #3d2459;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  filter: none;
   transition: transform 0.25s;
 }
 
 .game-card:hover .game-emoji {
-  transform: scale(1.12) rotate(-5deg);
+  transform: scale(1.08) rotate(-4deg);
 }
 
 .game-category {
@@ -493,20 +512,26 @@ a {
   display: flex;
   align-items: center;
   gap: 23px;
-  border: 1px solid #eae3ff;
-  border-radius: 24px;
-  background: linear-gradient(110deg, #f5f0ff, #fff9fc);
+  border: 1px solid #eadcff;
+  border-radius: 28px;
+  background: linear-gradient(110deg, #f9f2ff, #fff5ee);
+  box-shadow: 0 18px 40px rgba(96, 60, 142, 0.08);
 }
 
 .about-icon {
   flex-shrink: 0;
-  width: 65px;
-  height: 65px;
+  width: 72px;
+  height: 72px;
   display: grid;
   place-items: center;
   border-radius: 20px;
-  background: white;
-  font-size: 31px;
+  background: linear-gradient(145deg, #fff, #f0eaff);
+  color: #5c2dd9;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid #e8ddff;
 }
 
 .about-section > div:nth-child(2) {
@@ -1299,6 +1324,11 @@ a {
   align-items: center;
   justify-content: center;
   text-align: center;
+  pointer-events: none;
+}
+
+.secret-card-face button {
+  pointer-events: auto;
 }
 
 .secret-card-back {
@@ -1306,9 +1336,18 @@ a {
 }
 
 .secret-icon {
-  display: block;
+  display: grid;
+  place-items: center;
   margin-bottom: 15px;
-  font-size: 55px;
+  width: 90px;
+  height: 90px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #f7f1ff, #efe7ff);
+  color: #5a2ed6;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .secret-card h2,
@@ -1420,6 +1459,21 @@ a {
 
 .result-votes {
   margin-top: 20px;
+}
+
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f6f0ff, #efe5ff);
+  color: #5a2ed6;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 @media (max-width: 520px) {
@@ -2151,7 +2205,19 @@ button:disabled {
 }
 
 .discussion-emoji {
-  font-size: 43px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fff, #f3ebff);
+  color: #5a2ed6;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .player-chips {

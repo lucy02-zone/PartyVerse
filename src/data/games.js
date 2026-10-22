@@ -6,7 +6,7 @@ export const games = [
     description: "Spot the player who doesn't belong before time runs out.",
     category: "Bluff & Deduction",
     players: "3–12 players",
-    icon: "🕵️",
+    icon: "IMP",
     color: "lavender",
   },
   {
@@ -15,7 +15,7 @@ export const games = [
     description: "Discover who is secretly working against the group.",
     category: "Social Deduction",
     players: "5–15 players",
-    icon: "🌙",
+    icon: "MAF",
     color: "peach",
   },
   {
@@ -24,7 +24,7 @@ export const games = [
     description: "Find the undercover players using clever clues.",
     category: "Word Party",
     players: "3–12 players",
-    icon: "🎭",
+    icon: "UVC",
     color: "mint",
   },
   {
@@ -33,7 +33,7 @@ export const games = [
     description: "Challenge your friends and race to the right answer.",
     category: "Trivia",
     players: "2–10 players",
-    icon: "⚡",
+    icon: "QZ",
     color: "yellow",
   },
   {
@@ -42,7 +42,7 @@ export const games = [
     description: "Act it out, guess the answer, and make everyone laugh.",
     category: "Acting & Guessing",
     players: "3–16 players",
-    icon: "🎬",
+    icon: "CHA",
     color: "pink",
   },
 ];

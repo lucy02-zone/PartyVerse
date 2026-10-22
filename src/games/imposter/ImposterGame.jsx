@@ -132,7 +132,7 @@ export default function ImposterGame() {
           PartyVerse
         </Link>
 
-        <span className="imposter-badge">🕵️ Find the Imposter</span>
+        <span className="imposter-badge">Find the Imposter</span>
       </header>
 
       <section className="imposter-panel">
@@ -153,14 +153,17 @@ export default function ImposterGame() {
             <div className="secret-card">
               <div className={`secret-card-inner ${revealed ? "revealed" : ""}`}>
                 <div className="secret-card-face secret-card-front">
-                  <span className="secret-icon">🔒</span>
+                  <span className="secret-icon">LOCK</span>
                   <h2>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
 
                   <button
                     type="button"
                     className="primary-button"
-                    onClick={() => setRevealed(true)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRevealed(true);
+                    }}
                   >
                     <Eye size={18} />
                     Reveal my role
@@ -169,7 +172,7 @@ export default function ImposterGame() {
 
                 <div className="secret-card-face secret-card-back">
                   <span className="secret-icon">
-                    {currentPlayer.role === "imposter" ? "🕵️" : "🎯"}
+                    {currentPlayer.role === "imposter" ? "IMP" : "OK"}
                   </span>
 
                   <h2>
@@ -193,7 +196,10 @@ export default function ImposterGame() {
                   <button
                     type="button"
                     className="secondary-button"
-                    onClick={() => setRevealed(false)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRevealed(false);
+                    }}
                   >
                     <EyeOff size={17} />
                     Hide my role
@@ -236,7 +242,7 @@ export default function ImposterGame() {
             </p>
 
             <div className="discussion-card">
-              <span>💬</span>
+              <span className="discussion-emoji">CHAT</span>
               <h2>Discuss your clues</h2>
 
               <p>
@@ -367,10 +373,10 @@ export default function ImposterGame() {
 
             <h1>
               {result.winner === "players"
-                ? "Imposter caught! 🎉"
+                ? "Imposter caught!"
                 : result.winner === "imposter"
-                  ? "The imposter wins! 🕵️"
-                  : "It's a tie! 🤝"}
+                  ? "The imposter wins!"
+                  : "It's a tie!"}
             </h1>
 
             <p className="imposter-subtitle">
@@ -382,7 +388,7 @@ export default function ImposterGame() {
             </p>
 
             <div className="result-card">
-              <span>🕵️</span>
+              <span className="result-badge">IMP</span>
               <p>The imposter was</p>
               <h2>{round.imposterId}</h2>
 

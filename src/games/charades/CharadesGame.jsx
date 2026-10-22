@@ -271,7 +271,7 @@ export default function CharadesGame() {
           PartyVerse
         </Link>
 
-        <span className="charades-badge">🎬 Charades</span>
+        <span className="charades-badge">Charades</span>
       </header>
 
       <section className="charades-panel">
@@ -310,7 +310,7 @@ export default function CharadesGame() {
             {phase === "preparation" && (
               <div className="charades-card">
                 <div className="privacy-banner">
-                  🔒 Privacy reminder: keep the prompt hidden from the rest of the group.
+                  Privacy reminder: keep the prompt hidden from the rest of the group.
                 </div>
 
                 {privatePromptVisible ? (

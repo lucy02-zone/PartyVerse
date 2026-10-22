@@ -156,7 +156,7 @@ export default function QuizGame() {
           PartyVerse
         </Link>
 
-        <span className="quiz-badge">⚡ Quiz Battle</span>
+        <span className="quiz-badge">Quiz Battle</span>
       </header>
 
       <section className="quiz-panel">

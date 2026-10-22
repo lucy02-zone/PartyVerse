@@ -126,7 +126,7 @@ export default function UndercoverGame() {
           PartyVerse
         </Link>
 
-        <span className="undercover-badge">🎭 Undercover</span>
+        <span className="undercover-badge">Undercover</span>
       </header>
 
       <section className="undercover-panel">
@@ -145,10 +145,10 @@ export default function UndercoverGame() {
             <div className="undercover-card">
               <span className="undercover-icon">
                 {!revealed
-                  ? "🔒"
+                  ? "LOCK"
                   : currentPlayer.role === "undercover"
-                    ? "🕵️"
-                    : "✅"}
+                    ? "IMP"
+                    : "OK"}
               </span>
 
               {!revealed ? (
@@ -227,7 +227,7 @@ export default function UndercoverGame() {
             </p>
 
             <div className="undercover-card">
-              <span className="discussion-emoji">💬</span>
+              <span className="discussion-emoji">CHAT</span>
               <h2>Clue time</h2>
 
               <div className="discussion-timer">
@@ -325,7 +325,7 @@ export default function UndercoverGame() {
 
             <div className="undercover-card result-card">
               <span className="discussion-emoji">
-                {result.winner === "civilian" ? "🏆" : result.winner === "undercover" ? "🕵️" : "🤝"}
+                {result.winner === "civilian" ? "WIN" : result.winner === "undercover" ? "IMP" : "TIE"}
               </span>
 
               <h2>
