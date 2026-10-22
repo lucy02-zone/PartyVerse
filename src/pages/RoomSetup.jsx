@@ -290,6 +290,7 @@ export default function RoomSetup() {
                     <option value="Technology">Technology</option>
                     <option value="Sports">Sports</option>
                     <option value="Programming">Programming</option>
+                    <option value="Telugu Movies">Telugu Movies</option>
                   </select>
                 </label>
 
