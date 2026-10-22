@@ -1,0 +1,48 @@
+
+export const games = [
+  {
+    id: "imposter",
+    title: "Find the Imposter",
+    description: "Spot the player who doesn't belong before time runs out.",
+    category: "Bluff & Deduction",
+    players: "3–12 players",
+    icon: "🕵️",
+    color: "lavender",
+  },
+  {
+    id: "mafia",
+    title: "Mafia",
+    description: "Discover who is secretly working against the group.",
+    category: "Social Deduction",
+    players: "5–15 players",
+    icon: "🌙",
+    color: "peach",
+  },
+  {
+    id: "undercover",
+    title: "Undercover",
+    description: "Find the undercover players using clever clues.",
+    category: "Word Party",
+    players: "3–12 players",
+    icon: "🎭",
+    color: "mint",
+  },
+  {
+    id: "quiz",
+    title: "Quiz Battle",
+    description: "Challenge your friends and race to the right answer.",
+    category: "Trivia",
+    players: "2–10 players",
+    icon: "⚡",
+    color: "yellow",
+  },
+  {
+    id: "charades",
+    title: "Charades",
+    description: "Act it out, guess the answer, and make everyone laugh.",
+    category: "Acting & Guessing",
+    players: "3–16 players",
+    icon: "🎬",
+    color: "pink",
+  },
+];
