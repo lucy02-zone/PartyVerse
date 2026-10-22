@@ -29,6 +29,8 @@ export default function RoomSetup() {
 
   const [players, setPlayers] = useState([]);
   const [newPlayer, setNewPlayer] = useState("");
+  const [renameIndex, setRenameIndex] = useState(null);
+  const [renameDraft, setRenameDraft] = useState("");
   const [message, setMessage] = useState("");
   const [quizConfig, setQuizConfig] = useState({
     category: "All",
@@ -89,15 +91,18 @@ export default function RoomSetup() {
     setMessage("");
   }
 
-  function renamePlayer(index) {
-    const currentName = players[index];
-    const nextName = window.prompt("Rename player", currentName || "");
+  function openRenamePlayer(index) {
+    setRenameIndex(index);
+    setRenameDraft(players[index] || "");
+    setMessage("");
+  }
 
-    if (nextName === null) {
+  function saveRenamePlayer() {
+    if (renameIndex === null) {
       return;
     }
 
-    const trimmedName = nextName.trim();
+    const trimmedName = renameDraft.trim();
 
     if (!trimmedName) {
       setMessage("Player name cannot be empty.");
@@ -106,7 +111,7 @@ export default function RoomSetup() {
 
     const duplicateExists = players.some(
       (player, playerIndex) =>
-        playerIndex !== index && player.toLowerCase() === trimmedName.toLowerCase()
+        playerIndex !== renameIndex && player.toLowerCase() === trimmedName.toLowerCase()
     );
 
     if (duplicateExists) {
@@ -116,9 +121,17 @@ export default function RoomSetup() {
 
     setPlayers((current) =>
       current.map((player, playerIndex) =>
-        playerIndex === index ? trimmedName : player
+        playerIndex === renameIndex ? trimmedName : player
       )
     );
+    setRenameIndex(null);
+    setRenameDraft("");
+    setMessage("");
+  }
+
+  function cancelRenamePlayer() {
+    setRenameIndex(null);
+    setRenameDraft("");
     setMessage("");
   }
 
@@ -299,7 +312,7 @@ export default function RoomSetup() {
                   <button
                     type="button"
                     className="rename-player-button"
-                    onClick={() => renamePlayer(index)}
+                    onClick={() => openRenamePlayer(index)}
                     aria-label={`Rename ${player}`}
                     title={`Rename ${player}`}
                   >
@@ -533,6 +546,58 @@ export default function RoomSetup() {
             Add your players and prepare for game night!
           </p>
         </section>
+
+        {renameIndex !== null && (
+          <div
+            className="rename-modal-backdrop"
+            onClick={cancelRenamePlayer}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Rename player"
+          >
+            <div
+              className="rename-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3>Rename player</h3>
+
+              <input
+                autoFocus
+                type="text"
+                value={renameDraft}
+                onChange={(event) => setRenameDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    saveRenamePlayer();
+                  }
+
+                  if (event.key === "Escape") {
+                    cancelRenamePlayer();
+                  }
+                }}
+                maxLength={30}
+                aria-label="Player name"
+              />
+
+              <div className="rename-modal-actions">
+                <button
+                  type="button"
+                  className="rename-modal-cancel"
+                  onClick={cancelRenamePlayer}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rename-modal-confirm"
+                  onClick={saveRenamePlayer}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );
