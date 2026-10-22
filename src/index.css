@@ -917,7 +917,6 @@ a {
   font-size: 11px;
 }
 
-.rename-player-button,
 .remove-player-button {
   width: 34px;
   height: 34px;
@@ -928,11 +927,6 @@ a {
   background: transparent;
   color: #9993a9;
   cursor: pointer;
-}
-
-.rename-player-button:hover {
-  background: #f1ebff;
-  color: #704de5;
 }
 
 .remove-player-button:hover {
@@ -947,77 +941,30 @@ a {
   background: #faf8ff;
 }
 
-.rename-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(18, 16, 28, 0.42);
-  z-index: 50;
-}
-
-.rename-modal {
-  width: min(100%, 540px);
-  padding: 22px 22px 18px;
-  border: 1px solid rgba(112, 77, 229, 0.16);
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 24px 60px rgba(46, 28, 78, 0.22);
-}
-
-.rename-modal h3 {
-  margin: 0 0 16px;
-  color: #2b2542;
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.rename-modal input {
-  width: 100%;
-  min-height: 52px;
-  padding: 14px 16px;
-  border: 2px solid #ddd5f4;
-  border-radius: 12px;
-  background: #fff;
-  color: #27243b;
-  font: inherit;
-  font-size: 15px;
-  outline: none;
-}
-
-.rename-modal input:focus {
-  border-color: #704de5;
-  box-shadow: 0 0 0 4px rgba(112, 77, 229, 0.12);
-}
-
-.rename-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.rename-modal-cancel,
-.rename-modal-confirm {
-  min-width: 104px;
-  min-height: 42px;
-  padding: 10px 18px;
+.player-name-button {
+  flex: 1;
+  padding: 0;
   border: 0;
-  border-radius: 12px;
+  background: transparent;
+  color: #2e2940;
   font: inherit;
   font-weight: 700;
-  cursor: pointer;
+  text-align: left;
+  cursor: text;
 }
 
-.rename-modal-cancel {
-  background: #f2f0fb;
-  color: #4f4a63;
-}
-
-.rename-modal-confirm {
-  background: linear-gradient(135deg, #704de5, #8d5ef3);
-  color: #fff;
+.player-name-input {
+  flex: 1;
+  min-height: 38px;
+  padding: 9px 10px;
+  border: 2px solid #704de5;
+  border-radius: 10px;
+  background: #fff;
+  color: #2e2940;
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(112, 77, 229, 0.08);
 }
 
 .player-guidance {
