@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,9 +8,9 @@ import {
   Users,
   Vote,
   RotateCcw,
+  Clock,
 } from "lucide-react";
 import { createImposterRound, getVoteResult } from "./logic.js";
-import "../../index.css";
 
 export default function ImposterGame() {
   const location = useLocation();
@@ -35,6 +35,28 @@ export default function ImposterGame() {
   const [voteTarget, setVoteTarget] = useState("");
   const [result, setResult] = useState(null);
 
+  // Discussion countdown timer
+  const [seconds, setSeconds] = useState(60);
+  const [timerRunning, setTimerRunning] = useState(true);
+
+  useEffect(() => {
+    if (phase !== "discussion" || !timerRunning || seconds <= 0) {
+      return undefined;
+    }
+
+    const timerId = setInterval(() => {
+      setSeconds((previous) => Math.max(previous - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [phase, timerRunning, seconds]);
+
+  const formattedTime = `${Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0")}:${(seconds % 60)
+    .toString()
+    .padStart(2, "0")}`;
+
   if (!round) {
     return (
       <main className="imposter-page">
@@ -57,6 +79,8 @@ export default function ImposterGame() {
     if (currentIndex < round.assignments.length - 1) {
       setCurrentIndex((index) => index + 1);
     } else {
+      setSeconds(60);
+      setTimerRunning(true);
       setPhase("discussion");
     }
   }
@@ -91,42 +115,62 @@ export default function ImposterGame() {
     setVoterIndex(0);
     setVoteTarget("");
     setResult(null);
+    setSeconds(60);
+    setTimerRunning(true);
+  }
+
+  function resetTimer() {
+    setSeconds(60);
+    setTimerRunning(true);
   }
 
   return (
     <main className="imposter-page">
       <header className="imposter-topbar">
         <Link to="/" className="back-link">
-          <ArrowLeft size={17} /> PartyVerse
+          <ArrowLeft size={17} />
+          PartyVerse
         </Link>
+
         <span className="imposter-badge">🕵️ Find the Imposter</span>
       </header>
 
       <section className="imposter-panel">
+        {/* PRIVATE ROLE REVEAL */}
         {phase === "reveal" && (
           <>
             <span className="section-kicker">
-              SECRET IDENTITY · PLAYER {currentIndex + 1} OF {players.length}
+              SECRET IDENTITY · PLAYER {currentIndex + 1} OF{" "}
+              {players.length}
             </span>
+
             <h1>Pass the device</h1>
+
             <p className="imposter-subtitle">
               Make sure only the current player can see the screen.
             </p>
 
             <div className="secret-card">
               <span className="secret-icon">
-                {revealed ? (currentPlayer.role === "imposter" ? "🕵️" : "🎯") : "🔒"}
+                {!revealed
+                  ? "🔒"
+                  : currentPlayer.role === "imposter"
+                    ? "🕵️"
+                    : "🎯"}
               </span>
 
               {!revealed ? (
                 <>
                   <h2>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
+
                   <button
+                    type="button"
                     className="primary-button"
                     onClick={() => setRevealed(true)}
                   >
-                    <Eye size={18} /> Reveal my role
+                    <Eye size={18} />
+                    Reveal my role
                   </button>
                 </>
               ) : (
@@ -136,21 +180,33 @@ export default function ImposterGame() {
                       ? "You are the IMPOSTER!"
                       : "You are a regular player"}
                   </h2>
+
                   <p>
                     {currentPlayer.role === "imposter"
                       ? "Blend in, listen to the clues, and avoid getting caught."
                       : "Your secret word is:"}
                   </p>
+
                   {currentPlayer.word && (
-                    <div className="secret-word">{currentPlayer.word}</div>
+                    <div className="secret-word">
+                      {currentPlayer.word}
+                    </div>
                   )}
+
                   <button
+                    type="button"
                     className="secondary-button"
                     onClick={() => setRevealed(false)}
                   >
-                    <EyeOff size={17} /> Hide my role
+                    <EyeOff size={17} />
+                    Hide my role
                   </button>
-                  <button className="primary-button" onClick={hideAndContinue}>
+
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={hideAndContinue}
+                  >
                     {currentIndex === players.length - 1
                       ? "Start discussion"
                       : "Hide & pass device"}
@@ -170,10 +226,13 @@ export default function ImposterGame() {
           </>
         )}
 
+        {/* DISCUSSION AND TIMER */}
         {phase === "discussion" && (
           <>
             <span className="section-kicker">ROUND 1 · DISCUSSION</span>
+
             <h1>Who seems suspicious?</h1>
+
             <p className="imposter-subtitle">
               Take turns giving clues about your secret word. Don't say the
               word itself! When everyone is ready, move to voting.
@@ -182,10 +241,12 @@ export default function ImposterGame() {
             <div className="discussion-card">
               <span>💬</span>
               <h2>Discuss your clues</h2>
+
               <p>
                 The imposter must try to blend in without knowing the secret
                 word.
               </p>
+
               <div className="player-chips">
                 {players.map((player) => (
                   <span key={player}>{player}</span>
@@ -193,21 +254,67 @@ export default function ImposterGame() {
               </div>
             </div>
 
+            <div
+              className={`discussion-timer ${
+                seconds <= 10 ? "timer-warning" : ""
+              }`}
+            >
+              <span className="timer-label">
+                <Clock size={14} />
+                TIME LEFT
+              </span>
+
+              <strong>{formattedTime}</strong>
+
+              <div className="timer-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() =>
+                    setTimerRunning((running) => !running)
+                  }
+                  disabled={seconds === 0}
+                >
+                  {timerRunning ? "Pause timer" : "Resume timer"}
+                </button>
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={resetTimer}
+                >
+                  <RotateCcw size={15} />
+                  Reset
+                </button>
+              </div>
+
+              {seconds === 0 && (
+                <p className="timer-finished" role="status">
+                  Time's up! Cast your votes.
+                </p>
+              )}
+            </div>
+
             <button
+              type="button"
               className="primary-button full-button"
               onClick={() => setPhase("voting")}
             >
-              <Vote size={18} /> Start voting
+              <Vote size={18} />
+              Start voting
             </button>
           </>
         )}
 
+        {/* VOTING */}
         {phase === "voting" && (
           <>
             <span className="section-kicker">
               VOTING · PLAYER {voterIndex + 1} OF {players.length}
             </span>
+
             <h1>Cast your vote</h1>
+
             <p className="imposter-subtitle">
               Pass the device to {round.assignments[voterIndex].player}.
               Choose who you think the imposter is.
@@ -219,11 +326,16 @@ export default function ImposterGame() {
               key={voterIndex}
             >
               {players
-                .filter((player) => player !== round.assignments[voterIndex].player)
+                .filter(
+                  (player) =>
+                    player !== round.assignments[voterIndex].player
+                )
                 .map((player) => (
                   <label
                     key={player}
-                    className={`vote-option ${voteTarget === player ? "vote-selected" : ""}`}
+                    className={`vote-option ${
+                      voteTarget === player ? "vote-selected" : ""
+                    }`}
                   >
                     <input
                       type="radio"
@@ -232,12 +344,17 @@ export default function ImposterGame() {
                       checked={voteTarget === player}
                       onChange={() => setVoteTarget(player)}
                     />
+
                     <Users size={17} />
                     {player}
                   </label>
                 ))}
 
-              <button className="primary-button full-button" type="submit">
+              <button
+                className="primary-button full-button"
+                type="submit"
+                disabled={!voteTarget}
+              >
                 {voterIndex === players.length - 1
                   ? "Reveal results"
                   : "Submit & pass device"}
@@ -246,9 +363,11 @@ export default function ImposterGame() {
           </>
         )}
 
+        {/* RESULTS */}
         {phase === "result" && result && (
           <>
             <span className="section-kicker">ROUND COMPLETE</span>
+
             <h1>
               {result.winner === "players"
                 ? "Imposter caught! 🎉"
@@ -256,6 +375,7 @@ export default function ImposterGame() {
                   ? "The imposter wins! 🕵️"
                   : "It's a tie! 🤝"}
             </h1>
+
             <p className="imposter-subtitle">
               {result.winner === "players"
                 ? "The group identified the imposter."
@@ -268,15 +388,26 @@ export default function ImposterGame() {
               <span>🕵️</span>
               <p>The imposter was</p>
               <h2>{round.imposterId}</h2>
+
               <p>The secret word was</p>
               <div className="secret-word">{round.secretWord}</div>
-              <p className="result-votes">Votes cast: {Object.keys(votes).length}</p>
+
+              <p className="result-votes">
+                Votes cast: {Object.keys(votes).length}
+              </p>
             </div>
 
-            <button className="primary-button full-button" onClick={restartRound}>
-              <RotateCcw size={18} /> Play another round
-            </button>
             <button
+              type="button"
+              className="primary-button full-button"
+              onClick={restartRound}
+            >
+              <RotateCcw size={18} />
+              Play another round
+            </button>
+
+            <button
+              type="button"
               className="secondary-button full-button"
               onClick={() => navigate("/game/imposter")}
             >
