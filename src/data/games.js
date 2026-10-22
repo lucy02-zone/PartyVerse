@@ -1,4 +1,10 @@
 
+import imposterImage from "../games/imposter/imposter.png";
+import mafiaImage from "../games/mafia/mafia.png";
+import undercoverImage from "../games/undercover/undercover.png";
+import quizImage from "../games/quiz/quiz.png";
+import charadesImage from "../games/charades/charades.png";
+
 export const games = [
   {
     id: "imposter",
@@ -8,6 +14,7 @@ export const games = [
     players: "3–12 players",
     icon: "IMP",
     color: "lavender",
+    image: imposterImage,
   },
   {
     id: "mafia",
@@ -17,6 +24,7 @@ export const games = [
     players: "5–15 players",
     icon: "MAF",
     color: "peach",
+    image: mafiaImage,
   },
   {
     id: "undercover",
@@ -26,6 +34,7 @@ export const games = [
     players: "3–12 players",
     icon: "UVC",
     color: "mint",
+    image: undercoverImage,
   },
   {
     id: "quiz",
@@ -35,6 +44,7 @@ export const games = [
     players: "2–10 players",
     icon: "QZ",
     color: "yellow",
+    image: quizImage,
   },
   {
     id: "charades",
@@ -44,5 +54,6 @@ export const games = [
     players: "3–16 players",
     icon: "CHA",
     color: "pink",
+    image: charadesImage,
   },
 ];

@@ -6,9 +6,17 @@ export default function GameCard({ game }) {
   return (
     <article className="game-card">
       <div className={`game-art ${game.color}`}>
-        <span className="game-emoji" aria-label={game.title}>
-          {game.icon}
-        </span>
+        {game.image ? (
+          <img
+            className="game-illustration"
+            src={game.image}
+            alt={game.title}
+          />
+        ) : (
+          <span className="game-emoji" aria-label={game.title}>
+            {game.icon}
+          </span>
+        )}
         <span className="game-category">{game.category}</span>
       </div>
 
