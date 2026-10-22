@@ -1654,40 +1654,45 @@ button:disabled {
 
 /* Mafia game */
 .mafia-page {
-  width: min(100% - 32px, 720px);
-  margin: 32px auto 64px;
-  color: #f8fafc;
+  min-height: 100vh;
+  padding: 24px 18px 60px;
+  background: #fbfaff;
 }
 
 .mafia-panel {
-  margin-top: 28px;
-  padding: 36px 28px;
-  border: 1px solid #334155;
+  width: min(100%, 720px);
+  margin: 28px auto 0;
+  padding: 35px;
+  border: 1px solid #eeebf6;
   border-radius: 24px;
-  background: #172033;
+  background: white;
+  box-shadow: 0 15px 50px #30204b08;
   text-align: center;
 }
 
 .mafia-icon {
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto 20px;
-  border-radius: 20px;
-  background: #3b1d35;
-  color: #f0abfc;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #f7f1ff, #efe7ff);
+  color: #5a2ed6;
 }
 
 .mafia-panel h1 {
-  margin: 12px 0;
-  font-size: clamp(2rem, 6vw, 3rem);
+  margin: 12px 0 10px;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(27px, 5vw, 38px);
+  letter-spacing: -1.3px;
 }
 
 .mafia-description,
 .mafia-note {
-  color: #b8c2d3;
-  line-height: 1.6;
+  color: #77758b;
+  line-height: 1.8;
+  font-size: 13px;
 }
 
 .mafia-progress {
@@ -1696,33 +1701,41 @@ button:disabled {
   align-items: center;
   gap: 8px;
   margin: 28px 0 16px;
-  color: #cbd5e1;
+  color: #5a2ed6;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .role-card {
   padding: 28px 22px;
-  border: 1px solid #475569;
+  border: 1px solid #efe8ff;
   border-radius: 20px;
-  background: #202c42;
+  background: linear-gradient(145deg, #faf7ff, #fffafd);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .role-card-label {
   display: block;
-  color: #cbd5e1;
+  color: #5c5870;
   font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .role-card h2 {
   margin: 18px 0;
   font-size: 1.8rem;
+  color: #2a2640;
 }
 
 .role-card p {
   margin: 18px 0;
-  color: #d3dbea;
+  color: #5f5b70;
   line-height: 1.7;
+  font-size: 14px;
 }
 
 .role-badge {
@@ -1730,29 +1743,31 @@ button:disabled {
   margin: 22px 0 4px;
   padding: 12px 24px;
   border-radius: 14px;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  background: #334155;
+  letter-spacing: 0.08em;
+  background: #f1ebff;
+  color: #3d2f7a;
 }
 
 .role-badge.mafia {
-  color: #fca5a5;
-  background: #4a202b;
+  color: #8d1b46;
+  background: #ffe4ef;
 }
 
 .role-badge.doctor {
-  color: #86efac;
-  background: #174536;
+  color: #0d7b4f;
+  background: #dffbea;
 }
 
 .role-badge.detective {
-  color: #93c5fd;
-  background: #1e3a5f;
+  color: #2157b7;
+  background: #dfeaff;
 }
 
 .role-badge.villager {
-  color: #fde68a;
-  background: #51401e;
+  color: #8a5d00;
+  background: #fff1c7;
 }
 
 .mafia-primary-button,
@@ -1765,26 +1780,29 @@ button:disabled {
   min-height: 48px;
   margin-top: 12px;
   padding: 12px 18px;
-  border: 0;
   border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .mafia-primary-button {
+  border: none;
   color: white;
-  background: #be3b67;
+  background: linear-gradient(135deg, #704de5, #8f5ef4);
+  box-shadow: 0 10px 24px rgba(112, 77, 229, 0.28);
 }
 
 .mafia-primary-button:hover {
-  background: #d44d7a;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(112, 77, 229, 0.32);
 }
 
 .mafia-secondary-button {
-  color: #e2e8f0;
-  border: 1px solid #64748b;
-  background: transparent;
+  border: 1px solid #eae2ff;
+  color: #4a3a7e;
+  background: white;
 }
 
 .mafia-note {
@@ -1799,8 +1817,8 @@ button:disabled {
   height: 56px;
   margin: 0 auto 18px;
   border-radius: 50%;
-  background: #14532d;
-  color: #bbf7d0;
+  background: linear-gradient(135deg, #d8f9e6, #b8f1d1);
+  color: #11814b;
   font-size: 2rem;
 }
 
