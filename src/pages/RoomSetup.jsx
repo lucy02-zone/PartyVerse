@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  Pencil,
   Plus,
   Trash2,
   Users,
@@ -26,7 +27,7 @@ export default function RoomSetup() {
   const game = games.find((item) => item.id === gameId);
   const limits = playerLimits[gameId] || { min: 2, max: 10 };
 
-  const [players, setPlayers] = useState(["Player 1", "Player 2"]);
+  const [players, setPlayers] = useState([]);
   const [newPlayer, setNewPlayer] = useState("");
   const [message, setMessage] = useState("");
   const [quizConfig, setQuizConfig] = useState({
@@ -84,6 +85,39 @@ export default function RoomSetup() {
   function removePlayer(index) {
     setPlayers((current) =>
       current.filter((_, playerIndex) => playerIndex !== index)
+    );
+    setMessage("");
+  }
+
+  function renamePlayer(index) {
+    const currentName = players[index];
+    const nextName = window.prompt("Rename player", currentName || "");
+
+    if (nextName === null) {
+      return;
+    }
+
+    const trimmedName = nextName.trim();
+
+    if (!trimmedName) {
+      setMessage("Player name cannot be empty.");
+      return;
+    }
+
+    const duplicateExists = players.some(
+      (player, playerIndex) =>
+        playerIndex !== index && player.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (duplicateExists) {
+      setMessage("Each player must have a unique name.");
+      return;
+    }
+
+    setPlayers((current) =>
+      current.map((player, playerIndex) =>
+        playerIndex === index ? trimmedName : player
+      )
     );
     setMessage("");
   }
@@ -247,27 +281,43 @@ export default function RoomSetup() {
           </form>
 
           <div className="player-list">
-            {players.map((player, index) => (
-              <div className="player-row" key={player}>
-                <span className="player-avatar">
-                  {player.charAt(0).toUpperCase()}
-                </span>
-
-                <span className="player-name">{player}</span>
-
-                <span className="player-number">#{index + 1}</span>
-
-                <button
-                  type="button"
-                  className="remove-player-button"
-                  onClick={() => removePlayer(index)}
-                  aria-label={`Remove ${player}`}
-                  title={`Remove ${player}`}
-                >
-                  <Trash2 size={17} />
-                </button>
+            {players.length === 0 ? (
+              <div className="player-row empty-state-row">
+                <span className="player-name">No players added yet.</span>
               </div>
-            ))}
+            ) : (
+              players.map((player, index) => (
+                <div className="player-row" key={`${player}-${index}`}>
+                  <span className="player-avatar">
+                    {player.charAt(0).toUpperCase()}
+                  </span>
+
+                  <span className="player-name">{player}</span>
+
+                  <span className="player-number">#{index + 1}</span>
+
+                  <button
+                    type="button"
+                    className="rename-player-button"
+                    onClick={() => renamePlayer(index)}
+                    aria-label={`Rename ${player}`}
+                    title={`Rename ${player}`}
+                  >
+                    <Pencil size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="remove-player-button"
+                    onClick={() => removePlayer(index)}
+                    aria-label={`Remove ${player}`}
+                    title={`Remove ${player}`}
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
 
           {gameId === "quiz" && (

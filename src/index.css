@@ -917,6 +917,7 @@ a {
   font-size: 11px;
 }
 
+.rename-player-button,
 .remove-player-button {
   width: 34px;
   height: 34px;
@@ -929,9 +930,21 @@ a {
   cursor: pointer;
 }
 
+.rename-player-button:hover {
+  background: #f1ebff;
+  color: #704de5;
+}
+
 .remove-player-button:hover {
   background: #fff0f0;
   color: #d34b5c;
+}
+
+.empty-state-row {
+  justify-content: center;
+  padding: 18px 16px;
+  color: #7c778d;
+  background: #faf8ff;
 }
 
 .player-guidance {
