@@ -90,6 +90,13 @@ export default function RoomSetup() {
       return;
     }
 
+    if (gameId === "mafia") {
+      navigate("/play/mafia", {
+        state: { players },
+      });
+      return;
+    }
+
     setMessage(`${game.title} gameplay is coming soon.`);
   }
 
