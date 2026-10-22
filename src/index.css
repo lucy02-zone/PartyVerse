@@ -215,6 +215,15 @@ a {
   place-items: center;
 }
 
+.hero-illustration {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 560px);
+  max-height: 500px;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 35px rgba(105, 57, 169, 0.18));
+}
+
 .visual-glow {
   position: absolute;
   width: 320px;

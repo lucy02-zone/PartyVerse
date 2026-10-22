@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Users, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GameCard from "../components/GameCard";
+import heroImage from "../assets/hero.png";
 import { games } from "../data/games";
 
 export default function Home() {
@@ -58,6 +59,7 @@ export default function Home() {
 
           <div className="hero-visual">
             <div className="visual-glow" />
+            <img className="hero-illustration" src={heroImage} alt="PartyVerse game night illustration" />
             <div className="floating-card card-one">
               <span className="token-box token-imp">IMP</span>
               <div>
