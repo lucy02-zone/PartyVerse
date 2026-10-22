@@ -409,6 +409,7 @@ export default function RoomSetup() {
                     <option value="Sports">Sports</option>
                     <option value="Programming">Programming</option>
                     <option value="Telugu Movies">Telugu Movies</option>
+                    <option value="Puzzle Mix">Puzzle Mix</option>
                   </select>
                 </label>
 

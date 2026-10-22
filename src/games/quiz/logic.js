@@ -7,6 +7,8 @@ export const QUIZ_CATEGORIES = [
   "Technology",
   "Sports",
   "Programming",
+  "Telugu Movies",
+  "Puzzle Mix",
 ];
 
 export const QUIZ_DIFFICULTIES = ["Mixed", "Easy", "Medium", "Hard"];

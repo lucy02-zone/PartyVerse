@@ -39,6 +39,7 @@ export default function QuizGame() {
 
   const currentPlayer = game?.players?.[currentPlayerIndex] || null;
   const currentQuestion = game?.questions?.[currentQuestionIndex] || null;
+  const isPuzzleQuestion = currentQuestion?.type === "puzzle";
   const leaderboard = useMemo(() => getLeaderboard(game?.players || []), [game]);
 
   useEffect(() => {
@@ -186,7 +187,9 @@ export default function QuizGame() {
 
             <div className="question-card">
               <div className="question-prompt-box">
-                <span className="question-label">Question</span>
+                <span className="question-label">
+                  {isPuzzleQuestion ? "Puzzle" : "Question"}
+                </span>
                 <h2>{currentQuestion.question}</h2>
               </div>
 
