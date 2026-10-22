@@ -153,22 +153,6 @@ export default function ImposterGame() {
       </header>
 
       <section className="imposter-panel">
-        <div className="imposter-config-row">
-          <label className="imposter-config-field">
-            <span>Category</span>
-            <select
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-            >
-              {getCategories().map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
         {/* PRIVATE ROLE REVEAL */}
         {phase === "reveal" && (
           <>
