@@ -1421,9 +1421,9 @@ a {
   display: grid;
   place-items: center;
   margin-bottom: 15px;
-  width: 90px;
-  height: 90px;
-  border-radius: 26px;
+  width: 200px;
+  height: 170px;
+  border-radius: 28px;
   background: linear-gradient(145deg, #f7f1ff, #efe7ff);
   color: #5a2ed6;
   font-size: 16px;
@@ -1434,16 +1434,18 @@ a {
 
 .lock-image-wrap {
   overflow: hidden;
-  padding: 8px;
-  background: linear-gradient(145deg, #f3ebff, #ece3ff);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .secret-lock-image {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(104, 80, 188, 0.18));
+  object-fit: cover;
+  border-radius: 22px;
+  filter: drop-shadow(0 14px 20px rgba(104, 80, 188, 0.22));
 }
 
 .secret-card h2,
@@ -1500,6 +1502,24 @@ a {
 .discussion-card > span,
 .result-card > span {
   font-size: 43px;
+}
+
+.discussion-illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.discussion-image {
+  display: block;
+  width: min(100%, 540px);
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 22px;
+  filter: drop-shadow(0 14px 24px rgba(112, 77, 229, 0.1));
 }
 
 .player-chips {

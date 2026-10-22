@@ -16,6 +16,7 @@ import {
   getVoteResult,
 } from "./logic.js";
 import lockImage from "./lock.png";
+import discussionImage from "./dicussion.png";
 
 export default function ImposterGame() {
   const location = useLocation();
@@ -280,7 +281,14 @@ export default function ImposterGame() {
             </p>
 
             <div className="discussion-card">
-              <span className="discussion-emoji">CHAT</span>
+              <div className="discussion-illustration">
+                <img
+                  src={discussionImage}
+                  alt="Players discussing clues"
+                  className="discussion-image"
+                />
+              </div>
+
               <h2>Discuss your clues</h2>
 
               <p>
