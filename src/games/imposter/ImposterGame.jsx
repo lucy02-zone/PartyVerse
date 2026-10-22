@@ -10,18 +10,27 @@ import {
   RotateCcw,
   Clock,
 } from "lucide-react";
-import { createImposterRound, getVoteResult } from "./logic.js";
+import {
+  createImposterRound,
+  getCategories,
+  getVoteResult,
+} from "./logic.js";
 
 export default function ImposterGame() {
   const location = useLocation();
   const navigate = useNavigate();
   const players = location.state?.players || [];
+  const [selectedCategory, setSelectedCategory] = useState(
+    location.state?.category || "Mixed"
+  );
 
   const [round, setRound] = useState(() => {
     if (players.length < 3) return null;
 
     try {
-      return createImposterRound(players);
+      return createImposterRound(players, {
+        category: location.state?.category || "Mixed",
+      });
     } catch {
       return null;
     }
@@ -106,8 +115,8 @@ export default function ImposterGame() {
     }
   }
 
-  function restartRound() {
-    setRound(createImposterRound(players));
+  function restartRound(nextCategory = selectedCategory) {
+    setRound(createImposterRound(players, { category: nextCategory }));
     setPhase("reveal");
     setCurrentIndex(0);
     setRevealed(false);
@@ -117,6 +126,12 @@ export default function ImposterGame() {
     setResult(null);
     setSeconds(60);
     setTimerRunning(true);
+  }
+
+  function handleCategoryChange(event) {
+    const nextCategory = event.target.value;
+    setSelectedCategory(nextCategory);
+    restartRound(nextCategory);
   }
 
   function resetTimer() {
@@ -136,6 +151,22 @@ export default function ImposterGame() {
       </header>
 
       <section className="imposter-panel">
+        <div className="imposter-config-row">
+          <label className="imposter-config-field">
+            <span>Category</span>
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+            >
+              {getCategories().map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
         {/* PRIVATE ROLE REVEAL */}
         {phase === "reveal" && (
           <>
@@ -183,15 +214,15 @@ export default function ImposterGame() {
 
                   <p>
                     {currentPlayer.role === "imposter"
-                      ? "You have a related secret word. Give clues that fit in, and avoid getting caught."
-                      : "Your secret word is:"}
+                      ? `Category: ${currentPlayer.category}. Blend in with the clue and stay under the radar.`
+                      : `Your clue is about ${currentPlayer.category}:`}
                   </p>
 
-                  {currentPlayer.word && (
-                    <div className="secret-word">
-                      {currentPlayer.word}
-                    </div>
-                  )}
+                  <div className="secret-word">
+                    {currentPlayer.role === "imposter"
+                      ? currentPlayer.clue
+                      : currentPlayer.answer}
+                  </div>
 
                   <button
                     type="button"
@@ -246,8 +277,7 @@ export default function ImposterGame() {
               <h2>Discuss your clues</h2>
 
               <p>
-                The imposter must try to blend in without knowing the secret
-                word.
+                The imposter must blend in using the clue only and stay calm.
               </p>
 
               <div className="player-chips">
@@ -392,7 +422,7 @@ export default function ImposterGame() {
               <p>The imposter was</p>
               <h2>{round.imposterId}</h2>
 
-              <p>The secret word was</p>
+              <p>The secret answer was</p>
               <div className="secret-word">{round.secretWord}</div>
 
               <p className="result-votes">

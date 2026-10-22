@@ -44,6 +44,9 @@ export default function RoomSetup() {
     teamMode: "individual",
     teamCount: 2,
   });
+  const [imposterConfig, setImposterConfig] = useState({
+    category: "Mixed",
+  });
 
   if (!game) {
     return (
@@ -144,7 +147,10 @@ export default function RoomSetup() {
 
     if (gameId === "imposter") {
       navigate("/play/imposter", {
-        state: { players },
+        state: {
+          players,
+          category: imposterConfig.category,
+        },
       });
       return;
     }
@@ -351,6 +357,36 @@ export default function RoomSetup() {
               ))
             )}
           </div>
+
+          {gameId === "imposter" && (
+            <div className="quiz-config">
+              <div className="quiz-config-grid">
+                <label className="quiz-config-field">
+                  <span>Category</span>
+                  <select
+                    value={imposterConfig.category}
+                    onChange={(event) =>
+                      setImposterConfig((current) => ({
+                        ...current,
+                        category: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="Mixed">Mixed</option>
+                    <option value="Movies">Movies</option>
+                    <option value="Famous People">Famous People</option>
+                    <option value="Jobs & Profession">Jobs & Profession</option>
+                    <option value="Hobbies">Hobbies</option>
+                    <option value="Activities">Activities</option>
+                    <option value="Food & Drinks">Food & Drinks</option>
+                    <option value="Countries & Cities">Countries & Cities</option>
+                    <option value="Brands">Brands</option>
+                    <option value="Music & Bands">Music & Bands</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          )}
 
           {gameId === "quiz" && (
             <div className="quiz-config">
