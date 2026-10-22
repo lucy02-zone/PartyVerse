@@ -151,16 +151,9 @@ export default function ImposterGame() {
             </p>
 
             <div className="secret-card">
-              <span className="secret-icon">
-                {!revealed
-                  ? "🔒"
-                  : currentPlayer.role === "imposter"
-                    ? "🕵️"
-                    : "🎯"}
-              </span>
-
-              {!revealed ? (
-                <>
+              <div className={`secret-card-inner ${revealed ? "revealed" : ""}`}>
+                <div className="secret-card-face secret-card-front">
+                  <span className="secret-icon">🔒</span>
                   <h2>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
 
@@ -172,9 +165,13 @@ export default function ImposterGame() {
                     <Eye size={18} />
                     Reveal my role
                   </button>
-                </>
-              ) : (
-                <>
+                </div>
+
+                <div className="secret-card-face secret-card-back">
+                  <span className="secret-icon">
+                    {currentPlayer.role === "imposter" ? "🕵️" : "🎯"}
+                  </span>
+
                   <h2>
                     {currentPlayer.role === "imposter"
                       ? "You are the IMPOSTER!"
@@ -211,8 +208,8 @@ export default function ImposterGame() {
                       ? "Start discussion"
                       : "Hide & pass device"}
                   </button>
-                </>
-              )}
+                </div>
+              </div>
             </div>
 
             <div className="phase-progress">

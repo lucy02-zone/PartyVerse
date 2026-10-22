@@ -218,8 +218,12 @@ export default function CharadesGame() {
 
   function handleStartActing() {
     setPrivatePromptVisible(true);
+  }
+
+  function beginActing() {
     setPhase("acting");
     setTimeLeft(game.turnDuration);
+    setIsPaused(false);
   }
 
   function handleCorrect() {
@@ -316,7 +320,7 @@ export default function CharadesGame() {
                     <button
                       type="button"
                       className="primary-button full-button"
-                      onClick={() => setPhase("acting")}
+                      onClick={beginActing}
                     >
                       <CheckCircle2 size={18} />
                       Start acting

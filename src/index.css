@@ -1268,14 +1268,41 @@ a {
   line-height: 1.8;
 }
 
-.secret-card,
-.discussion-card,
-.result-card {
+.secret-card {
+  position: relative;
   margin: 28px 0 20px;
+  perspective: 1200px;
+}
+
+.secret-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 350px;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+}
+
+.secret-card-inner.revealed {
+  transform: rotateY(180deg);
+}
+
+.secret-card-face {
+  position: absolute;
+  inset: 0;
   padding: 28px 20px;
   border: 1px solid #eee8ff;
   border-radius: 20px;
   background: linear-gradient(145deg, #faf7ff, #fffafd);
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.secret-card-back {
+  transform: rotateY(180deg);
 }
 
 .secret-icon {
