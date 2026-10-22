@@ -7,6 +7,7 @@ import MafiaGame from "./games/mafia/MafiaGame.jsx";
 import MafiaNight from "./games/mafia/MafiaNight.jsx";
 import MafiaDay from "./games/mafia/MafiaDay.jsx";
 import UndercoverGame from "./games/undercover/UndercoverGame.jsx";
+import QuizGame from "./games/quiz/QuizGame.jsx";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/play/mafia/day" element={<MafiaDay />} />
         <Route path="/play/mafia" element={<MafiaGame />} />
         <Route path="/play/undercover" element={<UndercoverGame />} />
+        <Route path="/play/quiz" element={<QuizGame />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

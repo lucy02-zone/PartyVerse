@@ -29,6 +29,12 @@ export default function RoomSetup() {
   const [players, setPlayers] = useState(["Player 1", "Player 2"]);
   const [newPlayer, setNewPlayer] = useState("");
   const [message, setMessage] = useState("");
+  const [quizConfig, setQuizConfig] = useState({
+    category: "All",
+    difficulty: "Mixed",
+    questionCount: 5,
+    timeLimit: 15,
+  });
 
   if (!game) {
     return (
@@ -100,6 +106,29 @@ export default function RoomSetup() {
     if (gameId === "undercover") {
       navigate("/play/undercover", {
         state: { players },
+      });
+      return;
+    }
+
+    if (gameId === "quiz") {
+      if (!Number.isInteger(quizConfig.questionCount) || ![5, 10, 15].includes(quizConfig.questionCount)) {
+        setMessage("Please choose 5, 10, or 15 questions.");
+        return;
+      }
+
+      if (!Number.isFinite(quizConfig.timeLimit) || quizConfig.timeLimit <= 0) {
+        setMessage("Please choose a positive timer value.");
+        return;
+      }
+
+      navigate("/play/quiz", {
+        state: {
+          players,
+          category: quizConfig.category,
+          difficulty: quizConfig.difficulty,
+          questionCount: quizConfig.questionCount,
+          timeLimit: quizConfig.timeLimit,
+        },
       });
       return;
     }
@@ -197,6 +226,85 @@ export default function RoomSetup() {
               </div>
             ))}
           </div>
+
+          {gameId === "quiz" && (
+            <div className="quiz-config">
+              <div className="quiz-config-grid">
+                <label className="quiz-config-field">
+                  <span>Category</span>
+                  <select
+                    value={quizConfig.category}
+                    onChange={(event) =>
+                      setQuizConfig((current) => ({
+                        ...current,
+                        category: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="All">All</option>
+                    <option value="General Knowledge">General Knowledge</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Programming">Programming</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Difficulty</span>
+                  <select
+                    value={quizConfig.difficulty}
+                    onChange={(event) =>
+                      setQuizConfig((current) => ({
+                        ...current,
+                        difficulty: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="Mixed">Mixed</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Questions</span>
+                  <select
+                    value={quizConfig.questionCount}
+                    onChange={(event) =>
+                      setQuizConfig((current) => ({
+                        ...current,
+                        questionCount: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Timer (sec)</span>
+                  <select
+                    value={quizConfig.timeLimit}
+                    onChange={(event) =>
+                      setQuizConfig((current) => ({
+                        ...current,
+                        timeLimit: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="player-guidance">
             <Gamepad2 size={18} />
