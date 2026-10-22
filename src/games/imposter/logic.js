@@ -12,6 +12,14 @@ const wordPairs = [
   ["Ice Cream", "Cake"],
   ["Apple", "Orange"],
   ["School", "College"],
+  ["Lion", "Tiger"],
+  ["Rain", "Snow"],
+  ["Guitar", "Piano"],
+  ["Airplane", "Helicopter"],
+  ["Laptop", "Tablet"],
+  ["Mountain", "Hill"],
+  ["Gold", "Silver"],
+  ["River", "Lake"],
 ];
 
 export function createImposterRound(players) {
@@ -23,23 +31,26 @@ export function createImposterRound(players) {
 
   for (let i = shuffledPlayers.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
+
     [shuffledPlayers[i], shuffledPlayers[j]] = [
       shuffledPlayers[j],
       shuffledPlayers[i],
     ];
   }
 
-  const imposterIndex = Math.floor(Math.random() * players.length);
+  const imposterIndex = Math.floor(Math.random() * shuffledPlayers.length);
   const wordPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
-  const secretWord = wordPair[0];
+
+  const regularWord = wordPair[0];
+  const imposterWord = wordPair[1];
 
   return {
-    secretWord,
+    secretWord: regularWord,
     imposterId: shuffledPlayers[imposterIndex],
     assignments: shuffledPlayers.map((player, index) => ({
       player,
       role: index === imposterIndex ? "imposter" : "player",
-      word: index === imposterIndex ? null : secretWord,
+      word: index === imposterIndex ? imposterWord : regularWord,
     })),
   };
 }
@@ -51,7 +62,12 @@ export function getVoteResult(votes, imposterId) {
     counts[votedPlayer] = (counts[votedPlayer] || 0) + 1;
   }
 
-  const maxVotes = Math.max(0, ...Object.values(counts));
+  if (Object.keys(counts).length === 0) {
+    return { winner: "tie", eliminated: null };
+  }
+
+  const maxVotes = Math.max(...Object.values(counts));
+
   const leaders = Object.keys(counts).filter(
     (player) => counts[player] === maxVotes
   );

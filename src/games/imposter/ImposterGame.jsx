@@ -183,7 +183,7 @@ export default function ImposterGame() {
 
                   <p>
                     {currentPlayer.role === "imposter"
-                      ? "Blend in, listen to the clues, and avoid getting caught."
+                      ? "You have a related secret word. Give clues that fit in, and avoid getting caught."
                       : "Your secret word is:"}
                   </p>
 
