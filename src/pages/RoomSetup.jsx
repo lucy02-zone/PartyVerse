@@ -1,7 +1,13 @@
 
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Users, Gamepad2 } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Users,
+  Gamepad2,
+} from "lucide-react";
 import { games } from "../data/games.js";
 import Navbar from "../components/Navbar.jsx";
 
@@ -15,6 +21,7 @@ const playerLimits = {
 
 export default function RoomSetup() {
   const { gameId } = useParams();
+  const navigate = useNavigate();
 
   const game = games.find((item) => item.id === gameId);
   const limits = playerLimits[gameId] || { min: 2, max: 10 };
@@ -47,7 +54,11 @@ export default function RoomSetup() {
       return;
     }
 
-    if (players.some((player) => player.toLowerCase() === name.toLowerCase())) {
+    const alreadyExists = players.some(
+      (player) => player.toLowerCase() === name.toLowerCase()
+    );
+
+    if (alreadyExists) {
       setMessage("Each player must have a unique name.");
       return;
     }
@@ -58,19 +69,28 @@ export default function RoomSetup() {
   }
 
   function removePlayer(index) {
-    setPlayers((current) => current.filter((_, i) => i !== index));
+    setPlayers((current) =>
+      current.filter((_, playerIndex) => playerIndex !== index)
+    );
     setMessage("");
   }
 
   function prepareGame() {
     if (players.length < limits.min) {
-      setMessage(`Add at least ${limits.min} players to play ${game.title}.`);
+      setMessage(
+        `Add at least ${limits.min} players to play ${game.title}.`
+      );
       return;
     }
 
-    setMessage(
-      `Room ready! ${game.title} is prepared for ${players.length} players.`
-    );
+    if (gameId === "imposter") {
+      navigate("/play/imposter", {
+        state: { players },
+      });
+      return;
+    }
+
+    setMessage(`${game.title} gameplay is coming soon.`);
   }
 
   return (
@@ -88,8 +108,12 @@ export default function RoomSetup() {
             <span>{game.icon}</span>
           </div>
 
-          <span className="section-kicker">LET'S GET THE PARTY STARTED</span>
+          <span className="section-kicker">
+            LET'S GET THE PARTY STARTED
+          </span>
+
           <h1>Set up your game</h1>
+
           <p>
             Gather your friends, add their names, and get ready to play.
           </p>
@@ -112,9 +136,7 @@ export default function RoomSetup() {
                 <Users size={20} />
                 Players
               </h2>
-              <p>
-                Add names for everyone joining the game.
-              </p>
+              <p>Add names for everyone joining the game.</p>
             </div>
 
             <span className="player-total">
@@ -140,7 +162,7 @@ export default function RoomSetup() {
 
           <div className="player-list">
             {players.map((player, index) => (
-              <div className="player-row" key={`${player}-${index}`}>
+              <div className="player-row" key={player}>
                 <span className="player-avatar">
                   {player.charAt(0).toUpperCase()}
                 </span>
@@ -172,7 +194,9 @@ export default function RoomSetup() {
           {message && (
             <p
               className={`setup-message ${
-                message.startsWith("Room ready!") ? "success" : "error"
+                message.endsWith("gameplay is coming soon.")
+                  ? "success"
+                  : "error"
               }`}
               role="status"
             >
@@ -189,7 +213,7 @@ export default function RoomSetup() {
           </button>
 
           <p className="setup-note">
-            This step prepares your player list. Actual gameplay comes next.
+            Add your players and prepare for game night!
           </p>
         </section>
       </main>
