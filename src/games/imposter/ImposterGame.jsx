@@ -15,6 +15,7 @@ import {
   getCategories,
   getVoteResult,
 } from "./logic.js";
+import lockImage from "./lock.png";
 
 export default function ImposterGame() {
   const location = useLocation();
@@ -184,7 +185,13 @@ export default function ImposterGame() {
             <div className="secret-card">
               <div className={`secret-card-inner ${revealed ? "revealed" : ""}`}>
                 <div className="secret-card-face secret-card-front">
-                  <span className="secret-icon">LOCK</span>
+                  <div className="secret-icon lock-image-wrap">
+                    <img
+                      src={lockImage}
+                      alt="Locked"
+                      className="secret-lock-image"
+                    />
+                  </div>
                   <h2>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
 

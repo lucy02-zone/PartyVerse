@@ -19,6 +19,41 @@ const playerLimits = {
   charades: { min: 3, max: 16 },
 };
 
+const avatarPalette = [
+  { bg: "#f0ebff", accent: "#704de5", hair: "#3b2e2b", shirt: "#8e6be8" },
+  { bg: "#ecfdf5", accent: "#12a26d", hair: "#3f2e2f", shirt: "#43c59e" },
+  { bg: "#fff3e5", accent: "#f59e0b", hair: "#2d1d1c", shirt: "#f4a261" },
+  { bg: "#e0f2fe", accent: "#0ea5e9", hair: "#2b2d42", shirt: "#60a5fa" },
+  { bg: "#fdf2f8", accent: "#ec4899", hair: "#4a2d2d", shirt: "#f472b6" },
+  { bg: "#f1f5f9", accent: "#64748b", hair: "#2e1e2f", shirt: "#94a3b8" },
+];
+
+function getPlayerAvatar(player, index) {
+  const safeName = (player || "P").trim() || "P";
+  const palette = avatarPalette[index % avatarPalette.length];
+  const initials = safeName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "P";
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="16" fill="${palette.bg}"/>
+      <circle cx="32" cy="24" r="13" fill="#f7d3b6"/>
+      <path d="M18 22c1-9 9-14 17-14 8 0 14 6 15 14-4-4-9-6-15-6-8 0-13 2-17 6Z" fill="${palette.hair}"/>
+      <ellipse cx="27" cy="25" rx="1.5" ry="2.2" fill="#2b2438"/>
+      <ellipse cx="37" cy="25" rx="1.5" ry="2.2" fill="#2b2438"/>
+      <path d="M27 31c2 2 8 2 10 0" stroke="#9d5c4e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M20 46c3-6 10-9 12-9s9 3 12 9v10H20V46Z" fill="${palette.shirt}"/>
+      <text x="32" y="57" text-anchor="middle" font-size="8" font-family="Arial, sans-serif" font-weight="700" fill="${palette.accent}">${initials}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 export default function RoomSetup() {
   const { gameId } = useParams();
   const navigate = useNavigate();
@@ -306,9 +341,12 @@ export default function RoomSetup() {
             ) : (
               players.map((player, index) => (
                 <div className="player-row" key={`${player}-${index}`}>
-                  <span className="player-avatar">
-                    {player.charAt(0).toUpperCase()}
-                  </span>
+                  <img
+                    className="player-avatar"
+                    src={getPlayerAvatar(player, index)}
+                    alt=""
+                    aria-hidden="true"
+                  />
 
                   {editingIndex === index ? (
                     <input
