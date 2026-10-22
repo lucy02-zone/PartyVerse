@@ -35,6 +35,13 @@ export default function RoomSetup() {
     questionCount: 5,
     timeLimit: 15,
   });
+  const [charadesConfig, setCharadesConfig] = useState({
+    category: "Mixed",
+    roundCount: 3,
+    turnDuration: 60,
+    teamMode: "individual",
+    teamCount: 2,
+  });
 
   if (!game) {
     return (
@@ -128,6 +135,42 @@ export default function RoomSetup() {
           difficulty: quizConfig.difficulty,
           questionCount: quizConfig.questionCount,
           timeLimit: quizConfig.timeLimit,
+        },
+      });
+      return;
+    }
+
+    if (gameId === "charades") {
+      if (players.length < 3 || players.length > 16) {
+        setMessage("Charades supports 3 to 16 players.");
+        return;
+      }
+
+      if (!Number.isInteger(charadesConfig.roundCount) || charadesConfig.roundCount < 1 || charadesConfig.roundCount > 12) {
+        setMessage("Choose between 1 and 12 rounds.");
+        return;
+      }
+
+      if (!Number.isFinite(charadesConfig.turnDuration) || charadesConfig.turnDuration < 15 || charadesConfig.turnDuration > 180) {
+        setMessage("Choose a turn timer between 15 and 180 seconds.");
+        return;
+      }
+
+      if (charadesConfig.teamMode === "teams") {
+        if (charadesConfig.teamCount < 2 || charadesConfig.teamCount > Math.min(players.length, 6)) {
+          setMessage("Teams require at least 2 teams and no more than 6.");
+          return;
+        }
+      }
+
+      navigate("/play/charades", {
+        state: {
+          players,
+          category: charadesConfig.category,
+          roundCount: charadesConfig.roundCount,
+          turnDuration: charadesConfig.turnDuration,
+          teamMode: charadesConfig.teamMode,
+          teamCount: charadesConfig.teamCount,
         },
       });
       return;
@@ -302,6 +345,107 @@ export default function RoomSetup() {
                     <option value={30}>30</option>
                   </select>
                 </label>
+              </div>
+            </div>
+          )}
+
+          {gameId === "charades" && (
+            <div className="quiz-config">
+              <div className="quiz-config-grid">
+                <label className="quiz-config-field">
+                  <span>Category</span>
+                  <select
+                    value={charadesConfig.category}
+                    onChange={(event) =>
+                      setCharadesConfig((current) => ({
+                        ...current,
+                        category: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="Movies">Movies</option>
+                    <option value="Animals">Animals</option>
+                    <option value="Actions">Actions</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Objects">Objects</option>
+                    <option value="Mixed">Mixed</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Play as</span>
+                  <select
+                    value={charadesConfig.teamMode}
+                    onChange={(event) =>
+                      setCharadesConfig((current) => ({
+                        ...current,
+                        teamMode: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="individual">Individuals</option>
+                    <option value="teams">Teams</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Rounds</span>
+                  <select
+                    value={charadesConfig.roundCount}
+                    onChange={(event) =>
+                      setCharadesConfig((current) => ({
+                        ...current,
+                        roundCount: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value={1}>1</option>
+                    <option value={2}>2</option>
+                    <option value={3}>3</option>
+                    <option value={4}>4</option>
+                    <option value={5}>5</option>
+                    <option value={6}>6</option>
+                  </select>
+                </label>
+
+                <label className="quiz-config-field">
+                  <span>Turn timer</span>
+                  <select
+                    value={charadesConfig.turnDuration}
+                    onChange={(event) =>
+                      setCharadesConfig((current) => ({
+                        ...current,
+                        turnDuration: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value={30}>30 sec</option>
+                    <option value={45}>45 sec</option>
+                    <option value={60}>60 sec</option>
+                    <option value={90}>90 sec</option>
+                  </select>
+                </label>
+
+                {charadesConfig.teamMode === "teams" && (
+                  <label className="quiz-config-field">
+                    <span>Team count</span>
+                    <select
+                      value={charadesConfig.teamCount}
+                      onChange={(event) =>
+                        setCharadesConfig((current) => ({
+                          ...current,
+                          teamCount: Number(event.target.value),
+                        }))
+                      }
+                    >
+                      <option value={2}>2 teams</option>
+                      <option value={3}>3 teams</option>
+                      <option value={4}>4 teams</option>
+                      <option value={5}>5 teams</option>
+                      <option value={6}>6 teams</option>
+                    </select>
+                  </label>
+                )}
               </div>
             </div>
           )}
