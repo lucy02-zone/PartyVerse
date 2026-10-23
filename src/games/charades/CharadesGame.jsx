@@ -1,5 +1,4 @@
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -11,6 +10,7 @@ import {
   SkipForward,
   Trophy,
   Users,
+  Smartphone,
 } from "lucide-react";
 import {
   buildCharadesGame,
@@ -19,6 +19,9 @@ import {
   getWinningTeams,
 } from "./logic.js";
 import { getPromptDeck } from "./prompts.js";
+
+const TILT_THRESHOLD = 22;
+const TILT_COOLDOWN_MS = 1100;
 
 export default function CharadesGame() {
   const location = useLocation();
@@ -29,7 +32,7 @@ export default function CharadesGame() {
     try {
       return buildCharadesGame({
         players: initialConfig.players || [],
-        category: initialConfig.category || "Mixed",
+        category: "Telugu Movies",
         roundCount: initialConfig.roundCount || 3,
         turnDuration: initialConfig.turnDuration || 60,
         teamMode: initialConfig.teamMode || "individual",
@@ -56,36 +59,36 @@ export default function CharadesGame() {
   );
   const [usedPrompts, setUsedPrompts] = useState([]);
   const [currentPrompt, setCurrentPrompt] = useState(null);
+  const [tiltEnabled, setTiltEnabled] = useState(false);
+  const [tiltStatus, setTiltStatus] = useState(
+    typeof window !== "undefined" && "DeviceOrientationEvent" in window
+      ? "Tilt controls are optional. Enable them on your phone."
+      : "Motion sensors are unavailable here. Use the buttons below."
+  );
+  const neutralBetaRef = useRef(null);
+  const lastTiltActionRef = useRef(0);
+  const tiltArmedRef = useRef(true);
+  const turnTimeoutRef = useRef(null);
 
   const totalTurns = useMemo(() => {
     if (!game || !game.teams?.length) return 0;
     return game.teams.length * game.roundCount;
   }, [game]);
 
-  const currentTurn = useMemo(() => {
-    if (!game) return null;
-    return getTurnDetails(game, turnIndex);
-  }, [game, turnIndex]);
+  const currentTurn = useMemo(
+    () => (game ? getTurnDetails(game, turnIndex) : null),
+    [game, turnIndex]
+  );
 
   useEffect(() => {
-    if (!game || currentPrompt || phase !== "preparation") {
-      return undefined;
-    }
-
+    if (!game || currentPrompt || phase !== "preparation") return;
     prepareNextTurn(turnIndex);
-    return undefined;
+    // The turn is prepared only when the current prompt is empty.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game, currentPrompt, phase, turnIndex]);
 
-  // The clock runs only during the acting phase.
-  // Revealing or reading the prompt never consumes acting time.
   useEffect(() => {
-    if (
-      !game ||
-      !currentPrompt ||
-      phase !== "acting" ||
-      isPaused ||
-      turnResolved
-    ) {
+    if (!game || !currentPrompt || phase !== "acting" || isPaused || turnResolved) {
       return undefined;
     }
 
@@ -94,12 +97,105 @@ export default function CharadesGame() {
       return undefined;
     }
 
-    const timerId = setTimeout(() => {
+    const timerId = window.setTimeout(() => {
       setTimeLeft((previous) => Math.max(0, previous - 1));
     }, 1000);
 
-    return () => clearTimeout(timerId);
-  }, [game, phase, isPaused, timeLeft, currentPrompt, turnResolved]);
+    return () => window.clearTimeout(timerId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game, currentPrompt, phase, isPaused, turnResolved, timeLeft]);
+
+  useEffect(() => {
+    return () => {
+      if (turnTimeoutRef.current) window.clearTimeout(turnTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tiltEnabled || phase !== "acting" || isPaused || turnResolved) {
+      return undefined;
+    }
+
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
+      setTiltStatus("Motion sensors are unavailable. Use the buttons below.");
+      return undefined;
+    }
+
+    const handleOrientation = (event) => {
+      if (typeof event.beta !== "number") return;
+
+      if (neutralBetaRef.current === null) {
+        neutralBetaRef.current = event.beta;
+        setTiltStatus("Tilt ready — tilt up for correct, down to skip.");
+        return;
+      }
+
+      const delta = event.beta - neutralBetaRef.current;
+
+      // Re-arm only after the phone returns close to its neutral position.
+      if (Math.abs(delta) < 9) {
+        tiltArmedRef.current = true;
+        return;
+      }
+
+      const now = Date.now();
+      if (!tiltArmedRef.current || now - lastTiltActionRef.current < TILT_COOLDOWN_MS) {
+        return;
+      }
+
+      
+if (delta <= -TILT_THRESHOLD) {
+  tiltArmedRef.current = false;
+  lastTiltActionRef.current = now;
+  handleCorrect();
+} else if (delta >= TILT_THRESHOLD) {
+  tiltArmedRef.current = false;
+  lastTiltActionRef.current = now;
+  handleSkip();
+}
+
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation, true);
+    return () => window.removeEventListener("deviceorientation", handleOrientation, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [
+  tiltEnabled,
+  phase,
+  isPaused,
+  turnResolved,
+  currentPrompt,
+  promptDeck,
+  usedPrompts,
+  turnIndex,
+]);
+  async function enableTiltControls() {
+    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
+      setTiltStatus("This device/browser does not support motion sensors. Use the buttons below.");
+      return;
+    }
+
+    try {
+      const orientationApi = window.DeviceOrientationEvent;
+      if (typeof orientationApi.requestPermission === "function") {
+        const permission = await orientationApi.requestPermission();
+        if (permission !== "granted") {
+          setTiltStatus("Motion permission was not granted. You can still use Correct and Skip.");
+          setTiltEnabled(false);
+          return;
+        }
+      }
+
+      neutralBetaRef.current = null;
+      lastTiltActionRef.current = 0;
+      tiltArmedRef.current = true;
+      setTiltEnabled(true);
+      setTiltStatus("Tilt enabled. Tilt up for correct and tilt down to skip.");
+    } catch {
+      setTiltEnabled(false);
+      setTiltStatus("Could not enable motion sensors. Use Correct and Skip instead.");
+    }
+  }
 
   if (!game) {
     return (
@@ -135,16 +231,14 @@ export default function CharadesGame() {
       return availablePrompt;
     }
 
-    const refreshedDeck = getPromptDeck(game.category, 200);
+    const refreshedDeck = getPromptDeck("Telugu Movies", 200);
     const nextPrompt = refreshedDeck[0] || null;
-
     setPromptDeck(
       nextPrompt
         ? refreshedDeck.filter((entry) => entry.prompt !== nextPrompt.prompt)
         : []
     );
     setUsedPrompts(nextPrompt ? [nextPrompt.prompt] : []);
-
     return nextPrompt;
   }
 
@@ -156,67 +250,61 @@ export default function CharadesGame() {
     }
 
     const nextPrompt = pickNextPrompt();
-
     setCurrentPrompt(nextPrompt);
     setPrivatePromptVisible(false);
     setTurnResolved(false);
     setTimeLeft(game.turnDuration);
     setIsPaused(false);
     setPhase("preparation");
+    neutralBetaRef.current = null;
+    tiltArmedRef.current = true;
   }
 
   function applyScore(teamId, result) {
     setTeamScores((previous) =>
       previous.map((team) => {
-        if (team.teamId !== teamId) {
-          return team;
-        }
-
+        if (team.teamId !== teamId) return team;
         return {
           ...team,
           turnsPlayed: team.turnsPlayed + 1,
           score: result === "correct" ? team.score + 1 : team.score,
           correctAnswers:
-            result === "correct"
-              ? team.correctAnswers + 1
-              : team.correctAnswers,
+            result === "correct" ? team.correctAnswers + 1 : team.correctAnswers,
           skippedPrompts:
-            result === "skip"
-              ? team.skippedPrompts + 1
-              : team.skippedPrompts,
+            result === "skip" ? team.skippedPrompts + 1 : team.skippedPrompts,
         };
       })
     );
   }
 
   function endTurn(result) {
-    if (!currentTeam || turnResolved) {
-      return;
-    }
+    if (!currentTeam || turnResolved) return;
 
     setTurnResolved(true);
     setIsPaused(true);
+    setTiltStatus(
+      result === "correct"
+        ? "Correct! +1 point."
+        : result === "skip"
+          ? "Skipped — no point."
+          : "Time is up."
+    );
 
-    if (result === "correct") {
-      applyScore(currentTeam.id, "correct");
-    } else if (result === "skip") {
-      applyScore(currentTeam.id, "skip");
-    } else {
-      applyScore(currentTeam.id, "timeout");
-    }
+    if (result === "correct") applyScore(currentTeam.id, "correct");
+    else if (result === "skip") applyScore(currentTeam.id, "skip");
+    else applyScore(currentTeam.id, "timeout");
 
     setPhase("scoreboard");
     setPrivatePromptVisible(false);
 
     const nextTurnIndex = turnIndex + 1;
-
-    setTimeout(() => {
+    if (turnTimeoutRef.current) window.clearTimeout(turnTimeoutRef.current);
+    turnTimeoutRef.current = window.setTimeout(() => {
       if (nextTurnIndex >= totalTurns) {
         setCurrentPrompt(null);
         setPhase("results");
         return;
       }
-
       setTurnIndex(nextTurnIndex);
       prepareNextTurn(nextTurnIndex);
     }, 1300);
@@ -229,31 +317,71 @@ export default function CharadesGame() {
 
   function beginActing() {
     if (!currentPrompt || turnResolved) return;
-
     setTimeLeft(game.turnDuration);
     setIsPaused(false);
     setPhase("acting");
+    neutralBetaRef.current = null;
+    tiltArmedRef.current = true;
   }
 
-  function handleCorrect() {
-    endTurn("correct");
+  
+function handleCorrect() {
+  if (!currentPrompt || turnResolved || isPaused) return;
+
+  // Award 1 point without ending the current player's turn.
+  if (currentTeam) {
+    setTeamScores((previous) =>
+      previous.map((team) =>
+        team.teamId === currentTeam.id
+          ? {
+              ...team,
+              score: team.score + 1,
+              correctAnswers: team.correctAnswers + 1,
+            }
+          : team
+      )
+    );
   }
 
-  function handleSkip() {
-    endTurn("skip");
+  // Show the next movie to the SAME player.
+  const nextPrompt = pickNextPrompt();
+  setCurrentPrompt(nextPrompt);
+}
+
+function handleSkip() {
+  if (!currentPrompt || turnResolved || isPaused) return;
+
+  // Skipping does not end the turn or award a point.
+  if (currentTeam) {
+    setTeamScores((previous) =>
+      previous.map((team) =>
+        team.teamId === currentTeam.id
+          ? {
+              ...team,
+              skippedPrompts: team.skippedPrompts + 1,
+            }
+          : team
+      )
+    );
   }
+
+  // Show the next movie to the SAME player.
+  const nextPrompt = pickNextPrompt();
+  setCurrentPrompt(nextPrompt);
+}
+
 
   function handleEndTurn() {
     endTurn("timeout");
   }
 
   function restartGame() {
+    if (turnTimeoutRef.current) window.clearTimeout(turnTimeoutRef.current);
     let freshGame;
-
     try {
       freshGame = buildCharadesGame({
         players: initialConfig.players || [],
-        category: initialConfig.category || "Mixed",
+        category: "Telugu Movies",
         roundCount: initialConfig.roundCount || 3,
         turnDuration: initialConfig.turnDuration || 60,
         teamMode: initialConfig.teamMode || "individual",
@@ -275,6 +403,8 @@ export default function CharadesGame() {
     setPromptDeck([...freshGame.deck]);
     setUsedPrompts([]);
     setCurrentPrompt(null);
+    setTiltEnabled(false);
+    setTiltStatus("Tilt controls are optional. Enable them on your phone.");
   }
 
   const winners = phase === "results" ? getWinningTeams(teamScores) : [];
@@ -286,16 +416,14 @@ export default function CharadesGame() {
           <ArrowLeft size={17} />
           PartyVerse
         </Link>
-
-        <span className="charades-badge">Charades</span>
+        <span className="charades-badge">Telugu Movie Charades</span>
       </header>
 
       <section className="charades-panel">
         {phase !== "results" && currentTurn && (
           <>
             <span className="section-kicker">
-              {game.category} · ROUND {currentTurn.roundNumber} OF{" "}
-              {game.roundCount}
+              TELUGU MOVIES · ROUND {currentTurn.roundNumber} OF {game.roundCount}
             </span>
 
             <h1>
@@ -303,19 +431,14 @@ export default function CharadesGame() {
             </h1>
 
             <p className="charades-subtitle">
-              Keep the prompt secret from the guessers and act without speaking.
+              Act without speaking. Only Telugu movie titles appear in this game.
             </p>
 
             <div className="charades-stats">
               <div className="charades-stat-box">
                 <Clock3 size={16} />
-                <span>
-                  {phase === "preparation"
-                    ? "Ready when you are"
-                    : `${timeLeft}s`}
-                </span>
+                <span>{phase === "preparation" ? "Ready when you are" : `${timeLeft}s`}</span>
               </div>
-
               <div className="charades-stat-box">
                 <Users size={16} />
                 <span>{currentTurn.team.players.length} players</span>
@@ -325,16 +448,24 @@ export default function CharadesGame() {
             {phase === "preparation" && (
               <div className="charades-card">
                 <div className="privacy-banner">
-                  Privacy reminder: keep the prompt hidden from the rest of
-                  the group.
+                  Pass the phone to {currentTurn.actingPlayer}. Keep the movie title hidden from the guessers.
                 </div>
 
                 {privatePromptVisible ? (
                   <>
-                    <span className="charades-secret-label">Secret prompt</span>
-                    <div className="charades-secret-prompt">
-                      {currentPrompt?.prompt}
-                    </div>
+                    <span className="charades-secret-label">Your Telugu movie</span>
+                    <div className="charades-secret-prompt">{currentPrompt?.prompt}</div>
+
+                    <button
+                      type="button"
+                      className="secondary-button full-button"
+                      onClick={enableTiltControls}
+                    >
+                      <Smartphone size={17} />
+                      {tiltEnabled ? "Tilt controls enabled" : "Enable phone tilt"}
+                    </button>
+                    <p className="charades-subtitle" role="status">{tiltStatus}</p>
+
                     <button
                       type="button"
                       className="primary-button full-button"
@@ -354,7 +485,7 @@ export default function CharadesGame() {
                       className="primary-button full-button"
                       onClick={handleStartActing}
                     >
-                      Reveal my prompt
+                      Reveal my movie
                     </button>
                   </>
                 )}
@@ -364,25 +495,33 @@ export default function CharadesGame() {
             {phase === "acting" && (
               <>
                 <div className="charades-card">
-                  <span className="charades-secret-label">Acting now</span>
-                  <h2>{currentPlayerName}</h2>
+                  <span className="charades-secret-label">Acting now · Telugu movie</span>
+                  <div className="charades-secret-prompt">{currentPrompt?.prompt}</div>
+                  <p className="charades-subtitle">
+                    Tilt up = Correct (+1 point) · Tilt down = Skip (0 points)
+                  </p>
 
                   <div className="charades-controls">
                     <button
                       type="button"
                       className="secondary-button"
-                      onClick={() =>
-                        setIsPaused((previous) => !previous)
-                      }
+                      onClick={() => setIsPaused((previous) => !previous)}
                     >
                       {isPaused ? <Play size={16} /> : <Pause size={16} />}
                       {isPaused ? "Resume" : "Pause"}
                     </button>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={enableTiltControls}
+                    >
+                      <Smartphone size={16} />
+                      {tiltEnabled ? "Tilt on" : "Enable tilt"}
+                    </button>
                   </div>
 
-                  {isPaused && (
-                    <p className="charades-subtitle">Timer paused.</p>
-                  )}
+                  <p className="charades-subtitle" role="status">{tiltStatus}</p>
+                  {isPaused && <p className="charades-subtitle">Timer paused.</p>}
 
                   <div className="charades-actions">
                     <button
@@ -391,9 +530,9 @@ export default function CharadesGame() {
                       onClick={handleCorrect}
                       disabled={isPaused || turnResolved}
                     >
-                      Correct
+                      <CheckCircle2 size={16} />
+                      Correct (+1)
                     </button>
-
                     <button
                       type="button"
                       className="secondary-button"
@@ -403,14 +542,13 @@ export default function CharadesGame() {
                       <SkipForward size={16} />
                       Skip
                     </button>
-
                     <button
                       type="button"
                       className="secondary-button"
                       onClick={handleEndTurn}
                       disabled={isPaused || turnResolved}
                     >
-                      End Turn
+                      End turn
                     </button>
                   </div>
                 </div>
@@ -420,7 +558,6 @@ export default function CharadesGame() {
                     <Trophy size={18} />
                     <span>Live Score</span>
                   </div>
-
                   {teamScores.map((team) => (
                     <div key={team.teamId} className="leaderboard-row">
                       <span className="leaderboard-rank">{team.name}</span>
@@ -435,7 +572,7 @@ export default function CharadesGame() {
             {phase === "scoreboard" && (
               <div className="charades-card">
                 <h2>Turn complete</h2>
-                <p>Nice work. The next team is up in a moment.</p>
+                <p>The next team is up in a moment.</p>
               </div>
             )}
           </>
@@ -443,7 +580,7 @@ export default function CharadesGame() {
 
         {phase === "results" && (
           <>
-            <span className="section-kicker">FINAL RESULTS</span>
+            <span className="section-kicker">FINAL RESULTS · TELUGU MOVIES</span>
             <h1>
               {winners.length > 1
                 ? "It’s a tie!"
@@ -455,27 +592,20 @@ export default function CharadesGame() {
                 <Trophy size={20} />
                 <span>
                   {winners.length > 1
-                    ? `Tied teams: ${winners
-                        .map((team) => team.name)
-                        .join(", ")}`
+                    ? `Tied teams: ${winners.map((team) => team.name).join(", ")}`
                     : `Winner: ${winners[0]?.name || "No winner"}`}
                 </span>
               </div>
 
               {teamScores
                 .slice()
-                .sort(
-                  (a, b) =>
-                    b.score - a.score ||
-                    b.correctAnswers - a.correctAnswers
-                )
+                .sort((a, b) => b.score - a.score || b.correctAnswers - a.correctAnswers)
                 .map((team, index) => (
                   <div key={team.teamId} className="results-row">
                     <div className="result-name">
                       <span>#{index + 1}</span>
                       <strong>{team.name}</strong>
                     </div>
-
                     <div className="result-stats">
                       <span>{team.score} pts</span>
                       <span>{team.correctAnswers} correct</span>
@@ -486,20 +616,11 @@ export default function CharadesGame() {
                 ))}
 
               <div className="results-actions">
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={restartGame}
-                >
+                <button type="button" className="primary-button" onClick={restartGame}>
                   <RotateCcw size={18} />
                   Play Again
                 </button>
-
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => navigate("/")}
-                >
+                <button type="button" className="secondary-button" onClick={() => navigate("/")}>
                   Return to Games
                 </button>
               </div>

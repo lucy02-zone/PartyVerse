@@ -1,128 +1,5 @@
 
-const makePrompts = (category, titles) =>
-  titles.map((prompt) => ({ category, prompt }));
-
-const MOVIES = makePrompts("Movies", [
-  "Toy Story",
-  "Spiderman",
-  "Frozen",
-  "Jurassic Park",
-  "The Lion King",
-  "Finding Nemo",
-  "Shrek",
-  "Harry Potter",
-  "The Avengers",
-  "The Incredibles",
-  "Moana",
-  "Inside Out",
-  "Cinderella",
-  "Pirates of the Caribbean",
-  "Toy Story 2",
-]);
-
-const ANIMALS = makePrompts("Animals", [
-  "Giraffe",
-  "Elephant",
-  "Dolphin",
-  "Rabbit",
-  "Penguin",
-  "Koala",
-  "Tiger",
-  "Panda",
-  "Hippo",
-  "Octopus",
-  "Monkey",
-  "Horse",
-  "Frog",
-  "Butterfly",
-  "Puppy",
-]);
-
-const ACTIONS = makePrompts("Actions", [
-  "Swimming",
-  "Jumping rope",
-  "Riding a bike",
-  "Blowing a kiss",
-  "Building a sandcastle",
-  "Stretching",
-  "Dancing",
-  "Shooting a basketball",
-  "Sleeping",
-  "Cooking breakfast",
-  "Opening a gift",
-  "Brushing teeth",
-  "Washing a car",
-  "Combing hair",
-  "Singing",
-]);
-
-const SPORTS = makePrompts("Sports", [
-  "Tennis",
-  "Soccer",
-  "Basketball",
-  "Swimming",
-  "Gymnastics",
-  "Volleyball",
-  "Baseball",
-  "Running",
-  "Boxing",
-  "Surfing",
-  "Cycling",
-  "Skating",
-  "Golf",
-  "Wrestling",
-  "Ice skating",
-]);
-
-const OBJECTS = makePrompts("Objects", [
-  "Backpack",
-  "Toothbrush",
-  "Television",
-  "Umbrella",
-  "Laptop",
-  "Bookshelf",
-  "Pillow",
-  "Camera",
-  "Couch",
-  "Microwave",
-  "Sunglasses",
-  "Water bottle",
-  "Lantern",
-  "Guitar",
-  "Vacuum cleaner",
-]);
-
-const MIXED = makePrompts("Mixed", [
-  "Ballet dancer",
-  "Pizza",
-  "Train",
-  "Pancakes",
-  "Campfire",
-  "Castle",
-  "Beach ball",
-  "Jungle",
-  "Superhero",
-  "Rocket ship",
-  "Treasure map",
-  "Ice cream cone",
-  "Treasure chest",
-  "Snowman",
-  "Gardening",
-  "Daydreaming",
-  "Fireworks",
-  "Flying kite",
-  "Doctor",
-  "Chef",
-  "Astronaut",
-  "Lighthouse",
-  "Pirate",
-  "Skyscraper",
-  "Magic wand",
-  "Garden hose",
-  "Volcano",
-]);
-
-const TELUGU_MOVIES = makePrompts("Telugu Movies", [
+const TELUGU_MOVIES = [
   "Nuvve Kavali",
   "Chitram",
   "Badri",
@@ -255,33 +132,27 @@ const TELUGU_MOVIES = makePrompts("Telugu Movies", [
   "Kingdom",
   "Thammudu",
   "Mana Shankara Vara Prasad Garu",
-]);
-
-export const CHARADES_PROMPTS = [
-  ...MOVIES,
-  ...ANIMALS,
-  ...ACTIONS,
-  ...SPORTS,
-  ...OBJECTS,
-  ...MIXED,
-  ...TELUGU_MOVIES,
 ];
 
-export function getPromptDeck(category = "Mixed", limit = 200) {
-  const source =
-    category === "Mixed"
-      ? [...CHARADES_PROMPTS]
-      : CHARADES_PROMPTS.filter(
-          (entry) => entry.category === category
-        );
+const uniqueTitles = [
+  ...new Set(
+    TELUGU_MOVIES.map((title) => title.trim()).filter(Boolean)
+  ),
+];
 
-  // Fisher-Yates shuffle avoids the bias of sorting with Math.random().
-  const shuffled = [...source];
+export const CHARADES_PROMPTS = uniqueTitles.map((prompt) => ({
+  category: "Telugu Movies",
+  prompt,
+}));
 
+export function getPromptDeck(_category = "Telugu Movies", limit = 200) {
+  const shuffled = [...CHARADES_PROMPTS];
+
+  // Fisher-Yates shuffle.
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  return shuffled.slice(0, Math.min(limit, shuffled.length));
+  return shuffled.slice(0, Math.max(0, Math.min(limit, shuffled.length)));
 }
