@@ -3,7 +3,6 @@ import { ArrowRight, Sparkles, Users, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GameCard from "../components/GameCard";
-import heroImage from "../assets/hero.png";
 import { games } from "../data/games";
 
 export default function Home() {
@@ -57,30 +56,6 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hero-visual">
-            <div className="visual-glow" />
-            <img className="hero-illustration" src={heroImage} alt="PartyVerse game night illustration" />
-            <div className="floating-card card-one">
-              <span className="token-box token-imp">IMP</span>
-              <div>
-                <strong>Who's the imposter?</strong>
-                <small>Trust nobody...</small>
-              </div>
-            </div>
-            <div className="party-orbit">
-              <span className="orbit-token token-one">UVC</span>
-              <span className="orbit-token token-two">QZ</span>
-              <span className="orbit-token token-three">RND</span>
-              <span className="orbit-center">GO</span>
-            </div>
-            <div className="floating-card card-two">
-              <span className="token-box token-win">WIN</span>
-              <div>
-                <strong>Game on!</strong>
-                <small>Your crew is waiting</small>
-              </div>
-            </div>
-          </div>
         </section>
 
         <section className="games-section" id="games">
