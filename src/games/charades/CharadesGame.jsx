@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock3, Pause, Play, RotateCcw, SkipForward, Trophy, Smartphone, Zap } from "lucide-react";
 import { buildCharadesGame, createMatchState, getMatchStats, getTiltAction, getTurnDetails, matchReducer } from "./logic.js";
@@ -6,7 +6,7 @@ import { buildCharadesGame, createMatchState, getMatchStats, getTiltAction, getT
 const MOTION_THRESHOLD = 22;
 const COOLDOWN_MS = 1000;
 
-export default function CharadesGame() {
+function CharadesGameScreen() {
   const location = useLocation();
   const navigate = useNavigate();
   const config = location.state || {};
@@ -16,7 +16,7 @@ export default function CharadesGame() {
   const [revealedTurn, setRevealedTurn] = useState(-1);
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  const [doublePointsArmed, setDoublePointsArmed] = useState(false);
+  const [doublePointsArmedFor, setDoublePointsArmedFor] = useState(null);
   const [sensorStatus, setSensorStatus] = useState("Manual Controls Active");
   const [neutralBeta, setNeutralBeta] = useState(null);
   const neutralRef = useRef(null);
@@ -24,8 +24,9 @@ export default function CharadesGame() {
   const lastActionRef = useRef(0);
   const sensorTimerRef = useRef(null);
 
-  const turn = state ? getTurnDetails(state.game, state.turnIndex) : null;
+  const turn = state ? getTurnDetails(state.game, state.turnIndex, state.teams) : null;
   const revealed = state ? revealedTurn === state.turnIndex : false;
+  const doublePointsArmed = Boolean(state && turn && doublePointsArmedFor === `${state.turnIndex}:${turn.team.id}`);
   const stats = useMemo(() => state && getMatchStats(state), [state]);
 
   useEffect(() => () => window.clearTimeout(sensorTimerRef.current), []);
@@ -73,7 +74,7 @@ export default function CharadesGame() {
     if (!state || state.phase !== "acting" || state.paused || state.transition || !state.currentPrompt) return;
     if (vibrationEnabled && typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(correct ? [25, 30, 25] : 20);
     dispatch({ type: "ANSWER", correct, ...powerUp, doublePoints: correct && (powerUp.doublePoints || doublePointsArmed) });
-    setDoublePointsArmed(false);
+    setDoublePointsArmedFor(null);
   }
 
   async function enableTilt() {
@@ -119,7 +120,7 @@ export default function CharadesGame() {
         <div className="charades-main-stats">
           <div className={`charades-clock ${state.timeLeft <= 10 ? "is-urgent" : ""}`} role="timer" aria-label={`${state.timeLeft} seconds remaining`}><Clock3 size={18}/><strong>{state.timeLeft}</strong><small>seconds</small></div>
           <div className="charades-score-chip"><Trophy size={18}/><span><strong>{turn.team.score}</strong> {state.game.teamMode === "teams" ? "team" : "player"} points</span></div>
-          <div className="charades-streak">🔥 <strong>{turn.team.streak}</strong> streak</div>
+          <div className="charades-streak"><Trophy size={16} aria-hidden="true"/><strong>{turn.team.streak}</strong> streak</div>
         </div>
 
         <div className={`charades-card ${state.result ? `answer-${state.result.type}` : ""}`}>
@@ -143,7 +144,7 @@ export default function CharadesGame() {
             {state.paused && <p className="charades-subtitle">Timer paused. Resume when ready.</p>}
             {state.currentPrompt && <div className="charades-powerups" aria-label="Team power-ups">
               <span>Team power-ups · one each per match</span>
-              <button className="secondary-button" disabled={state.paused || state.transition || !turn.team.inventory.doublePoints} title="Double the points for one correct answer" onClick={() => setDoublePointsArmed((armed) => !armed)}><Zap size={15}/> {doublePointsArmed ? "Double points armed" : "Double points"} ({turn.team.inventory.doublePoints})</button>
+              <button className="secondary-button" disabled={state.paused || state.transition || !turn.team.inventory.doublePoints} title="Double the points for one correct answer" onClick={() => setDoublePointsArmedFor(doublePointsArmed ? null : `${state.turnIndex}:${turn.team.id}`)}><Zap size={15}/> {doublePointsArmed ? "Double points armed" : "Double points"} ({turn.team.inventory.doublePoints})</button>
               <button className="secondary-button" disabled={state.paused || state.transition || !turn.team.inventory.extraTime} title="Add 15 seconds to this turn" onClick={() => dispatch({ type: "EXTRA_TIME" })}>+15 sec ({turn.team.inventory.extraTime})</button>
               <button className="secondary-button" disabled={state.paused || state.transition || !turn.team.inventory.freeSkip} title="Use one free skip and continue this player's turn" onClick={() => act(false, { freeSkip: true })}>Free skip ({turn.team.inventory.freeSkip})</button>
             </div>}            {state.currentPrompt && <div className="charades-actions">
@@ -164,4 +165,19 @@ export default function CharadesGame() {
       </div>}
     </section>
   </main>;
+}
+
+export default class CharadesGame extends Component {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return <main className="charades-page"><section className="charades-panel" role="alert"><h1>Charades needs a fresh start</h1><p className="charades-subtitle">The current match state could not be recovered. Your room setup is still available.</p><Link className="primary-button" to="/game/charades">Return to Charades setup</Link><Link className="secondary-button" to="/">Return home</Link></section></main>;
+    }
+    return <CharadesGameScreen />;
+  }
 }
