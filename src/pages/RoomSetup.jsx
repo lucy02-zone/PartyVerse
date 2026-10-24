@@ -73,7 +73,8 @@ export default function RoomSetup() {
     timeLimit: 15,
   });
   const [charadesConfig, setCharadesConfig] = useState({
-    category: "Mixed",
+    era: null,
+    difficulty: "Mixed",
     roundCount: 3,
     turnDuration: 60,
     teamMode: "individual",
@@ -253,7 +254,8 @@ export default function RoomSetup() {
       navigate("/play/charades", {
         state: {
           players,
-          category: charadesConfig.category,
+          era: charadesConfig.era,
+          difficulty: charadesConfig.difficulty,
           roundCount: charadesConfig.roundCount,
           turnDuration: charadesConfig.turnDuration,
           teamMode: charadesConfig.teamMode,
@@ -510,104 +512,16 @@ export default function RoomSetup() {
           {gameId === "charades" && (
             <div className="quiz-config">
               <div className="quiz-config-grid">
-                <label className="quiz-config-field">
-                  <span>Category</span>
-                  <select
-                    value={charadesConfig.category}
-                    onChange={(event) =>
-                      setCharadesConfig((current) => ({
-                        ...current,
-                        category: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="Movies">Movies</option>
-                    <option value="Animals">Animals</option>
-                    <option value="Actions">Actions</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Objects">Objects</option>
-                    <option value="Mixed">Mixed</option>
-                  </select>
-                </label>
-
-                <label className="quiz-config-field">
-                  <span>Play as</span>
-                  <select
-                    value={charadesConfig.teamMode}
-                    onChange={(event) =>
-                      setCharadesConfig((current) => ({
-                        ...current,
-                        teamMode: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="individual">Individuals</option>
-                    <option value="teams">Teams</option>
-                  </select>
-                </label>
-
-                <label className="quiz-config-field">
-                  <span>Rounds</span>
-                  <select
-                    value={charadesConfig.roundCount}
-                    onChange={(event) =>
-                      setCharadesConfig((current) => ({
-                        ...current,
-                        roundCount: Number(event.target.value),
-                      }))
-                    }
-                  >
-                    <option value={1}>1</option>
-                    <option value={2}>2</option>
-                    <option value={3}>3</option>
-                    <option value={4}>4</option>
-                    <option value={5}>5</option>
-                    <option value={6}>6</option>
-                  </select>
-                </label>
-
-                <label className="quiz-config-field">
-                  <span>Turn timer</span>
-                  <select
-                    value={charadesConfig.turnDuration}
-                    onChange={(event) =>
-                      setCharadesConfig((current) => ({
-                        ...current,
-                        turnDuration: Number(event.target.value),
-                      }))
-                    }
-                  >
-                    <option value={30}>30 sec</option>
-                    <option value={45}>45 sec</option>
-                    <option value={60}>60 sec</option>
-                    <option value={90}>90 sec</option>
-                  </select>
-                </label>
-
-                {charadesConfig.teamMode === "teams" && (
-                  <label className="quiz-config-field">
-                    <span>Team count</span>
-                    <select
-                      value={charadesConfig.teamCount}
-                      onChange={(event) =>
-                        setCharadesConfig((current) => ({
-                          ...current,
-                          teamCount: Number(event.target.value),
-                        }))
-                      }
-                    >
-                      <option value={2}>2 teams</option>
-                      <option value={3}>3 teams</option>
-                      <option value={4}>4 teams</option>
-                      <option value={5}>5 teams</option>
-                      <option value={6}>6 teams</option>
-                    </select>
-                  </label>
-                )}
+                <label className="quiz-config-field"><span>Movie era</span><select value={charadesConfig.era ? charadesConfig.era.join("-") : "all"} onChange={(event) => setCharadesConfig((current) => ({ ...current, era: event.target.value === "all" ? null : event.target.value.split("-").map(Number) }))}><option value="all">All eras</option><option value="2000-2009">2000–2009</option><option value="2010-2019">2010–2019</option><option value="2020-2026">2020–2026</option></select></label>
+                <label className="quiz-config-field"><span>Difficulty</span><select value={charadesConfig.difficulty} onChange={(event) => setCharadesConfig((current) => ({ ...current, difficulty: event.target.value }))}><option>Mixed</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label>
+                <label className="quiz-config-field"><span>Play as</span><select value={charadesConfig.teamMode} onChange={(event) => setCharadesConfig((current) => ({ ...current, teamMode: event.target.value }))}><option value="individual">Individuals</option><option value="teams">Teams</option></select></label>
+                <label className="quiz-config-field"><span>Rounds</span><select value={charadesConfig.roundCount} onChange={(event) => setCharadesConfig((current) => ({ ...current, roundCount: Number(event.target.value) }))}>{[1,2,3,4,5,6].map((n) => <option value={n} key={n}>{n}</option>)}</select></label>
+                <label className="quiz-config-field"><span>Turn timer</span><select value={charadesConfig.turnDuration} onChange={(event) => setCharadesConfig((current) => ({ ...current, turnDuration: Number(event.target.value) }))}>{[30,45,60,90].map((n) => <option value={n} key={n}>{n} seconds</option>)}</select></label>
+                {charadesConfig.teamMode === "teams" && <label className="quiz-config-field"><span>Team count</span><select value={charadesConfig.teamCount} onChange={(event) => setCharadesConfig((current) => ({ ...current, teamCount: Number(event.target.value) }))}>{[2,3,4,5,6].map((n) => <option value={n} key={n}>{n} teams</option>)}</select></label>}
               </div>
+              <p className="setup-note">Only Telugu movie titles appear. Filters apply to the prompt deck.</p>
             </div>
           )}
-
           <div className="player-guidance">
             <Gamepad2 size={18} />
             <span>
