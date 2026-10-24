@@ -272,7 +272,7 @@ export default function RoomSetup() {
     <>
       <Navbar />
 
-      <main className="setup-page">
+      <main className={`setup-page ${gameId === "charades" ? "charades-setup" : ""}`}>
         <Link to="/" className="back-link">
           <ArrowLeft size={17} />
           Back to games
