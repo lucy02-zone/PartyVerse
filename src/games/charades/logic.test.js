@@ -24,6 +24,18 @@ describe("Telugu Charades", () => {
     expect(next.teams[0].score).toBe(1); expect(next.turnIndex).toBe(0);
     expect(matchReducer(next, { type: "ANSWER", correct: true })).toBe(next);
   });
+  it("advances the prompt color version only when a new prompt becomes active", () => {
+    const s = started();
+    expect(s.promptVersion).toBe(0);
+    const answered = matchReducer(s, { type: "ANSWER", correct: true });
+    expect(answered.promptVersion).toBe(1);
+    expect(matchReducer(answered, { type: "ANSWER", correct: false }).promptVersion).toBe(1);
+    const ready = matchReducer(answered, { type: "NEXT_PROMPT" });
+    expect(ready.promptVersion).toBe(1);
+    const expired = matchReducer({ ...ready, timeLeft: 1 }, { type: "TICK" });
+    expect(expired.promptVersion).toBe(2);
+    expect(matchReducer(expired, { type: "RESTART", game: game() }).promptVersion).toBe(0);
+  });
   it("initializes power-ups and uses live match teams for the acting turn", () => {
     const g = game();
     const s = createMatchState({ ...g, teams: g.teams.map((team) => Object.fromEntries(Object.entries(team).filter(([key]) => key !== "inventory"))) }, () => 0);
@@ -43,6 +55,7 @@ describe("Telugu Charades", () => {
   it("skips without scoring and moves to the next prompt", () => {
     const s = started(); const next = matchReducer(s, { type: "ANSWER", correct: false });
     expect(next.teams[0].score).toBe(0); expect(next.teams[0].skippedPrompts).toBe(1);
+    expect(next.promptVersion).toBe(1);
     expect(next.currentPrompt.prompt).not.toBe(s.currentPrompt.prompt);
   });
   it("advances only on end turn and resets on restart", () => {

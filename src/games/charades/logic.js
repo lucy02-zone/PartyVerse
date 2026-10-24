@@ -76,7 +76,7 @@ export function createMatchState(game, random = Math.random) {
   };
   const deck = [...game.deck];
   for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
-  return { game, teams: game.teams.map((t) => ({ ...t, score: 0, correctAnswers: 0, skippedPrompts: 0, streak: 0, longestStreak: 0, turnsPlayed: 0, inventory: createPowerUpInventory(t.inventory) })), turnIndex: 0, phase: "preparation", timeLeft: game.turnDuration, turnElapsed: 0, paused: false, promptIndex: 0, currentPrompt: deck[0] || null, deck, history: [], correctTimes: [], achievements: [], transition: false, result: null };
+  return { game, teams: game.teams.map((t) => ({ ...t, score: 0, correctAnswers: 0, skippedPrompts: 0, streak: 0, longestStreak: 0, turnsPlayed: 0, inventory: createPowerUpInventory(t.inventory) })), turnIndex: 0, phase: "preparation", timeLeft: game.turnDuration, turnElapsed: 0, paused: false, promptIndex: 0, promptVersion: 0, currentPrompt: deck[0] || null, deck, history: [], correctTimes: [], achievements: [], transition: false, result: null };
 }
 
 export function matchReducer(state, action = {}) {
@@ -90,7 +90,7 @@ export function matchReducer(state, action = {}) {
       if (state.currentPrompt || !["acting", "preparation"].includes(state.phase)) return state;
       const deck = [...state.game.deck];
       for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
-      return { ...state, deck, promptIndex: 0, currentPrompt: deck[0] || null, history: [...state.history, { outcome: "deck-replay" }] };
+      return { ...state, deck, promptIndex: 0, promptVersion: (state.promptVersion || 0) + (deck[0] ? 1 : 0), currentPrompt: deck[0] || null, history: [...state.history, { outcome: "deck-replay" }] };
     }
     case "START": return state.phase === "preparation" ? { ...state, phase: "acting", timeLeft: state.game.turnDuration, turnElapsed: 0 } : state;
     case "PAUSE": return state.phase === "acting" ? { ...state, paused: true } : state;
@@ -116,7 +116,7 @@ export function matchReducer(state, action = {}) {
       if (correct && STREAK_MILESTONES.includes(nextTeam.streak)) achievements.push({ type: "streak", teamId: team.id, value: nextTeam.streak });
       const promptIndex = state.promptIndex + 1;
       const currentPrompt = state.deck[promptIndex] || null;
-      return { ...state, teams, history, achievements, promptIndex, currentPrompt, result: correct ? { type: "correct", points } : { type: "skip", points: 0 }, transition: true };
+      return { ...state, teams, history, achievements, promptIndex, promptVersion: (state.promptVersion || 0) + (currentPrompt ? 1 : 0), currentPrompt, result: correct ? { type: "correct", points } : { type: "skip", points: 0 }, transition: true };
     }
     case "NEXT_PROMPT": return state.phase === "acting" ? { ...state, transition: false, result: null } : state;
     case "END_TURN": {
@@ -126,7 +126,8 @@ export function matchReducer(state, action = {}) {
       const finished = state.turnIndex + 1 >= state.game.totalTurns || (state.game.targetScore && teams.some((t) => t.score >= state.game.targetScore));
       const consumePrompt = Boolean(state.currentPrompt && !["correct", "skip"].includes(state.result?.type));
       const nextPromptIndex = state.promptIndex + (consumePrompt ? 1 : 0);
-      return { ...state, teams, turnIndex: finished ? state.turnIndex : state.turnIndex + 1, phase: finished ? "results" : "preparation", timeLeft: state.game.turnDuration, turnElapsed: 0, paused: false, promptIndex: nextPromptIndex, currentPrompt: finished ? null : state.deck[nextPromptIndex] || null, transition: false, result: { type: action.reason || "ended", points: 0 } };
+      const currentPrompt = finished ? null : state.deck[nextPromptIndex] || null;
+      return { ...state, teams, turnIndex: finished ? state.turnIndex : state.turnIndex + 1, phase: finished ? "results" : "preparation", timeLeft: state.game.turnDuration, turnElapsed: 0, paused: false, promptIndex: nextPromptIndex, promptVersion: (state.promptVersion || 0) + (currentPrompt && currentPrompt !== state.currentPrompt ? 1 : 0), currentPrompt, transition: false, result: { type: action.reason || "ended", points: 0 } };
     }
     case "EXTRA_TIME": {
       const teamIndex = state.turnIndex % state.teams.length;

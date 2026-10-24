@@ -164,7 +164,7 @@ function CharadesGameScreen() {
   const shareSummary = `PartyVerse Telugu Charades · ${winners.length === 1 ? winners[0]?.name + " wins" : winners.map((w) => w.name).join(" & ") + " tie"} · ${state.teams.map((team) => `${team.name} ${team.score}`).join(" | ")} · ${stats.correct} correct, ${stats.skips} skips`;
   const progress = Math.max(0, state.game.totalTurns - state.turnIndex);
 
-  return <main className={`charades-page ${state.phase === "results" ? "is-results" : ""}`}>
+  return <main className={`charades-page ${state.phase === "results" ? "is-results" : ""}`} data-prompt-color={(state.promptVersion || 0) % 3}>
     {state.phase !== "results" ? <>
       <header className="charades-hud">
         <button className="charades-icon-button" aria-label="Pause and exit" onClick={openPause}><ArrowLeft size={21}/></button>

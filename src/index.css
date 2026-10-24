@@ -2640,3 +2640,141 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .charades-page *, .charades-page *::before, .charades-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Charades viewport reflow and prompt color states */
+.charades-page {
+  --charades-terracotta: #D08B68;
+  --charades-background: var(--charades-deep-aubergine);
+  --charades-foreground: var(--charades-ice-silver);
+  --charades-muted: #C8B4CB;
+  --charades-surface: #4B1D45;
+  --charades-border: #ffffff40;
+  --charades-button-background: var(--charades-ice-silver);
+  --charades-button-foreground: var(--charades-deep-aubergine);
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  background-color: var(--charades-background);
+  color: var(--charades-foreground);
+  transition: background-color 240ms ease, color 240ms ease;
+}
+.charades-page[data-prompt-color="1"] {
+  --charades-background: var(--charades-ice-silver);
+  --charades-foreground: var(--charades-deep-aubergine);
+  --charades-muted: #5C4559;
+  --charades-surface: #FFFFFF;
+  --charades-border: #3A0F3440;
+  --charades-button-background: var(--charades-deep-aubergine);
+  --charades-button-foreground: var(--charades-ice-silver);
+}
+.charades-page[data-prompt-color="2"] {
+  --charades-background: var(--charades-terracotta);
+  --charades-foreground: var(--charades-deep-aubergine);
+  --charades-muted: #512D25;
+  --charades-surface: #E5A27D;
+  --charades-border: #3A0F3450;
+  --charades-button-background: var(--charades-deep-aubergine);
+  --charades-button-foreground: var(--charades-ice-silver);
+}
+.charades-page .charades-hud-player span,
+.charades-page .charades-eyebrow,
+.charades-page .charades-prompt-meta,
+.charades-page .charades-footer-copy span,
+.charades-page .charades-gesture-hint,
+.charades-page .charades-powerups summary,
+.charades-page .charades-leader-name small,
+.charades-page .charades-leader-row > strong small { color: var(--charades-muted); }
+.charades-page .charades-powerups { display: block; }
+.charades-page .charades-hud-player strong,
+.charades-page .charades-timer,
+.charades-page .charades-icon-button,
+.charades-page .charades-prompt,
+.charades-page .charades-round-status,
+.charades-page .charades-footer-copy strong,
+.charades-page .charades-score-dots,
+.charades-page .charades-leader-name,
+.charades-page .charades-leader-row > strong,
+.charades-page .charades-results h1,
+.charades-page .charades-prep h1 { color: var(--charades-foreground); }
+.charades-page .charades-icon-button,
+.charades-page .charades-timer,
+.charades-page .charades-footer,
+.charades-page .charades-score-dots,
+.charades-page .charades-result-icon,
+.charades-page .charades-scoreboard,
+.charades-page .charades-reveal,
+.charades-page .charades-powerup,
+.charades-page .charades-prep-meta,
+.charades-page .charades-powerups { border-color: var(--charades-border); }
+.charades-page .charades-reveal,
+.charades-page .charades-scoreboard { background: var(--charades-surface); }
+.charades-page .charades-prep > p,
+.charades-page .charades-results-intro { color: var(--charades-muted); }
+.charades-page .charades-prep-meta { color: var(--charades-muted); }
+.charades-page .charades-result-icon { color: var(--charades-foreground); }
+.charades-page .charades-reveal h2 { color: var(--charades-foreground); }
+.charades-page .charades-button-primary { color: var(--charades-button-foreground); background: var(--charades-button-background); }
+.charades-page .charades-button-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.charades-page .charades-button-secondary,
+.charades-page .charades-text-button,
+.charades-page .charades-vibration,
+.charades-page .charades-powerup { color: var(--charades-foreground); }
+.charades-page .charades-button-secondary,
+.charades-page .charades-powerup { border-color: var(--charades-border); }
+.charades-page .charades-text-button:hover { background: color-mix(in srgb, var(--charades-foreground) 10%, transparent); }
+.charades-page .charades-powerup b { color: var(--charades-foreground); }
+.charades-page .charades-summary-stats span { border-color: var(--charades-border); color: var(--charades-foreground); }
+.charades-page .charades-button:focus-visible,
+.charades-page .charades-icon-button:focus-visible,
+.charades-page .charades-text-button:focus-visible,
+.charades-page .charades-powerup:focus-visible { outline-color: var(--charades-foreground); }
+.charades-page .charades-timer.is-urgent { border-color: #A52D4D; color: #A52D4D; }
+.charades-page[data-prompt-color="0"] .charades-timer.is-urgent { border-color: var(--charades-danger); color: var(--charades-danger); }
+.charades-page .charades-stage { min-width: 0; }
+.charades-page .charades-prompt-wrap,
+.charades-page .charades-play,
+.charades-page .charades-prep { min-width: 0; }
+.charades-page .charades-prompt { width: 100%; overflow-wrap: anywhere; word-break: normal; }
+.charades-page .charades-dialog { color: var(--charades-deep-aubergine); background: var(--charades-ice-silver); }
+.charades-page.is-results { min-height: 100vh; min-height: 100svh; min-height: 100dvh; }
+.charades-page .charades-dialog { max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px); }
+@media (orientation: landscape) and (max-height: 560px) {
+  .charades-page:not(.is-results) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    min-width: 0;
+  }
+  .charades-page:not(.is-results) .charades-hud { grid-column: 1; grid-row: 1; width: 100%; }
+  .charades-page:not(.is-results) .charades-stage {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    min-height: 0;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block: 6px;
+  }
+  .charades-page:not(.is-results) .charades-footer { grid-column: 1; grid-row: 3; width: 100%; }
+  .charades-page:not(.is-results) .charades-play { gap: 8px; }
+  .charades-page:not(.is-results) .charades-prompt { margin-block: 6px; font-size: clamp(1.8rem, 8vh, 4rem); }
+  .charades-page:not(.is-results) .charades-round-status { gap: 5px 20px; }
+  .charades-page:not(.is-results) .charades-actions { width: min(100%, 520px); gap: 10px; }
+  .charades-page:not(.is-results) .charades-button { min-height: 48px; }
+  .charades-page:not(.is-results) .charades-utility-row { gap: 2px 10px; }
+  .charades-page:not(.is-results) .charades-powerups[open] { position: static; width: min(100%, 560px); padding: 0; border: 0; background: transparent; }
+  .charades-page:not(.is-results) .charades-powerup-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) and (orientation: landscape) {
+  .charades-page:not(.is-results) { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+  .charades-page:not(.is-results) .charades-hud { grid-template-columns: 44px minmax(0, 1fr) 52px; gap: 9px; }
+  .charades-page:not(.is-results) .charades-hud-player strong { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .charades-page { transition: none; }
+  .charades-page .charades-prompt { animation: none; }
+}
