@@ -83,6 +83,7 @@ export default function RoomSetup() {
   const [imposterConfig, setImposterConfig] = useState({
     category: "Mixed",
   });
+  const [charadesStep, setCharadesStep] = useState(0);
 
   if (!game) {
     return (
@@ -278,7 +279,7 @@ export default function RoomSetup() {
           Back to games
         </Link>
 
-        <section className="setup-header">
+        <section className={`setup-header ${gameId === "charades" ? "charades-setup-header" : ""}`}>
           <div className={`setup-game-icon ${game.color}`}>
             <span>{game.icon}</span>
           </div>
@@ -287,7 +288,7 @@ export default function RoomSetup() {
             LET'S GET THE PARTY STARTED
           </span>
 
-          <h1>Set up your game</h1>
+          <h1>{gameId === "charades" ? "Build your Charades lobby" : "Set up your game"}</h1>
 
           <p>
             Gather your friends, add their names, and get ready to play.
@@ -295,7 +296,19 @@ export default function RoomSetup() {
         </section>
 
         <section className="setup-card">
-          <div className="selected-game">
+          {gameId === "charades" ? (
+            <section className="charades-lobby-hero" aria-label="Charades game">
+              <img src={game.image} alt="Charades" />
+              <div className="charades-lobby-hero-copy">
+                <span className="setup-label">PARTYVERSE · ACTING &amp; GUESSING</span>
+                <h2>{game.title}</h2>
+                <p>{game.description}</p>
+                <button type="button" onClick={() => { setCharadesStep(0); document.getElementById("charades-players")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>
+                  Set up your game <span aria-hidden="true">↓</span>
+                </button>
+              </div>
+            </section>
+          ) : <div className="selected-game">
             <div>
               <span className="setup-label">SELECTED GAME</span>
               <h2>{game.title}</h2>
@@ -303,9 +316,13 @@ export default function RoomSetup() {
             </div>
 
             <span className="selected-game-emoji">{game.icon}</span>
-          </div>
+          </div>}
 
-          <div className="player-heading">
+          {gameId === "charades" && <nav className="charades-stepper" aria-label="Game setup steps">
+            {["Players", "Rules", "Review"].map((label, index) => <button type="button" key={label} className={charadesStep === index ? "is-active" : charadesStep > index ? "is-complete" : ""} aria-current={charadesStep === index ? "step" : undefined} onClick={() => index <= charadesStep || (index === 1 && players.length >= limits.min) ? setCharadesStep(index) : setMessage(`Add at least ${limits.min} players before choosing the rules.`)}><span>{index + 1}</span>{label}</button>)}
+          </nav>}
+
+          {(gameId !== "charades" || charadesStep === 0) && <div id="charades-players" className="charades-step-content"><div className="player-heading">
             <div>
               <h2>
                 <Users size={20} />
@@ -396,7 +413,7 @@ export default function RoomSetup() {
                 </div>
               ))
             )}
-          </div>
+          </div></div>}
 
           {gameId === "imposter" && (
             <div className="quiz-config">
@@ -509,19 +526,15 @@ export default function RoomSetup() {
             </div>
           )}
 
-          {gameId === "charades" && (
-            <div className="quiz-config">
-              <div className="quiz-config-grid">
-                <label className="quiz-config-field"><span>Movie era</span><select value={charadesConfig.era ? charadesConfig.era.join("-") : "all"} onChange={(event) => setCharadesConfig((current) => ({ ...current, era: event.target.value === "all" ? null : event.target.value.split("-").map(Number) }))}><option value="all">All eras</option><option value="2000-2009">2000–2009</option><option value="2010-2019">2010–2019</option><option value="2020-2026">2020–2026</option></select></label>
-                <label className="quiz-config-field"><span>Difficulty</span><select value={charadesConfig.difficulty} onChange={(event) => setCharadesConfig((current) => ({ ...current, difficulty: event.target.value }))}><option>Mixed</option><option>Easy</option><option>Medium</option><option>Hard</option></select></label>
-                <label className="quiz-config-field"><span>Play as</span><select value={charadesConfig.teamMode} onChange={(event) => setCharadesConfig((current) => ({ ...current, teamMode: event.target.value }))}><option value="individual">Individuals</option><option value="teams">Teams</option></select></label>
-                <label className="quiz-config-field"><span>Rounds</span><select value={charadesConfig.roundCount} onChange={(event) => setCharadesConfig((current) => ({ ...current, roundCount: Number(event.target.value) }))}>{[1,2,3,4,5,6].map((n) => <option value={n} key={n}>{n}</option>)}</select></label>
-                <label className="quiz-config-field"><span>Turn timer</span><select value={charadesConfig.turnDuration} onChange={(event) => setCharadesConfig((current) => ({ ...current, turnDuration: Number(event.target.value) }))}>{[30,45,60,90].map((n) => <option value={n} key={n}>{n} seconds</option>)}</select></label>
-                {charadesConfig.teamMode === "teams" && <label className="quiz-config-field"><span>Team count</span><select value={charadesConfig.teamCount} onChange={(event) => setCharadesConfig((current) => ({ ...current, teamCount: Number(event.target.value) }))}>{[2,3,4,5,6].map((n) => <option value={n} key={n}>{n} teams</option>)}</select></label>}
-              </div>
-              <p className="setup-note">Only Telugu movie titles appear. Filters apply to the prompt deck.</p>
-            </div>
-          )}
+          {gameId === "charades" && charadesStep === 1 && <div className="charades-step-content charades-rules">
+            <header><span className="setup-label">MAKE IT YOURS</span><h2>Choose your rules</h2><p>Pick a decade, set the pace, and decide how you’ll play.</p></header>
+            <div className="charades-choice-group"><h3>Movie era</h3><div className="charades-choice-grid">{[{label:"All eras",value:null},{label:"2000–2009",value:[2000,2009]},{label:"2010–2019",value:[2010,2019]},{label:"2020–2026",value:[2020,2026]}].map(({label,value}) => <button type="button" key={label} aria-pressed={JSON.stringify(charadesConfig.era)===JSON.stringify(value)} onClick={() => setCharadesConfig(c=>({...c,era:value}))}>{label}</button>)}</div></div>
+            <div className="charades-choice-group"><h3>Difficulty</h3><div className="charades-choice-grid">{["Mixed","Easy","Medium","Hard"].map(value=><button type="button" key={value} aria-pressed={charadesConfig.difficulty===value} onClick={()=>setCharadesConfig(c=>({...c,difficulty:value}))}><strong>{value}</strong><small>{value === "Mixed" ? "A little of everything" : value === "Easy" ? "Quick to act and guess" : value === "Medium" ? "A fun challenge" : "For the experts"}</small></button>)}</div></div>
+            <div className="charades-choice-group"><h3>Play as</h3><div className="charades-choice-grid charades-mode-grid">{[{value:"individual",label:"Individuals",sub:"Everyone plays for themselves"},{value:"teams",label:"Teams",sub:"Act and guess together"}].map(item=><button type="button" key={item.value} aria-pressed={charadesConfig.teamMode===item.value} onClick={()=>setCharadesConfig(c=>({...c,teamMode:item.value}))}><strong>{item.label}</strong><small>{item.sub}</small></button>)}</div>{charadesConfig.teamMode === "teams" && <label className="charades-team-count">Number of teams<select value={charadesConfig.teamCount} onChange={e=>setCharadesConfig(c=>({...c,teamCount:Number(e.target.value)}))}>{[2,3,4,5,6].filter(n=>n<=players.length).map(n=><option key={n} value={n}>{n} teams</option>)}</select></label>}</div>
+            <div className="charades-inline-settings"><label>Rounds<select value={charadesConfig.roundCount} onChange={e=>setCharadesConfig(c=>({...c,roundCount:Number(e.target.value)}))}>{[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} {n===1?"round":"rounds"}</option>)}</select></label><label>Turn timer<select value={charadesConfig.turnDuration} onChange={e=>setCharadesConfig(c=>({...c,turnDuration:Number(e.target.value)}))}>{[30,45,60,90].map(n=><option key={n} value={n}>{n} seconds</option>)}</select></label></div>
+            <p className="setup-note">Only Telugu movie titles appear. Era and difficulty filter the prompt deck.</p>
+          </div>}
+          {gameId === "charades" && charadesStep === 2 && <div className="charades-step-content charades-review"><span className="setup-label">READY FOR GAME NIGHT</span><h2>Meet the players</h2><div className="charades-review-players">{players.map((name,i)=><span key={`${name}-${i}`}><img src={getPlayerAvatar(name,i)} alt="" />{name}</span>)}</div><h3>Game rules</h3><p>{charadesConfig.era ? `${charadesConfig.era[0]}–${charadesConfig.era[1]}` : "All eras"} · {charadesConfig.difficulty} difficulty · {charadesConfig.teamMode === "teams" ? `${charadesConfig.teamCount} teams` : "Individuals"}</p><p>{charadesConfig.roundCount} rounds · {charadesConfig.turnDuration} seconds per turn</p><button type="button" className="charades-edit-rules" onClick={()=>setCharadesStep(1)}>Edit rules</button></div>}
           <div className="player-guidance">
             <Gamepad2 size={18} />
             <span>
@@ -542,17 +555,20 @@ export default function RoomSetup() {
             </p>
           )}
 
-          <button
+          {gameId === "charades" ? <div className="charades-step-actions">
+            {charadesStep > 0 && <button type="button" className="charades-back-step" onClick={()=>{setMessage("");setCharadesStep(s=>s-1)}}>← Back</button>}
+            {charadesStep < 2 ? <button type="button" className="start-game-button" disabled={charadesStep === 0 && players.length < limits.min} onClick={()=>{setMessage("");setCharadesStep(s=>s+1)}}>{charadesStep === 0 ? "Choose your rules" : "Review game"} <span>→</span></button> : <button type="button" className="start-game-button" disabled={players.length < limits.min} onClick={prepareGame}>Start game <span>→</span></button>}
+          </div> : <button
             type="button"
             className="start-game-button"
             onClick={prepareGame}
           >
             Prepare game <span>→</span>
-          </button>
+          </button>}
 
-          <p className="setup-note">
+          {gameId !== "charades" && <p className="setup-note">
             Add your players and prepare for game night!
-          </p>
+          </p>}
         </section>
 
       </main>

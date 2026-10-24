@@ -2758,6 +2758,52 @@ button:disabled {
 .charades-setup .selected-game-emoji { flex: 0 0 auto; font-size: clamp(28px, 8vw, 43px); }
 .charades-setup .setup-card { min-width: 0; }
 .charades-setup .selected-game + .player-heading { min-width: 0; }
+.charades-setup .setup-card { padding: clamp(18px, 4vw, 34px); }
+.charades-setup-header .setup-game-icon { display: none; }
+.charades-lobby-hero { display: grid; grid-template-columns: minmax(150px, .72fr) 1fr; align-items: center; gap: clamp(20px, 4vw, 42px); padding: clamp(18px, 4vw, 32px); border: 1px solid #3a0f3425; border-radius: 22px; background: linear-gradient(125deg, #fff 20%, #f8f5fb 100%); }
+.charades-lobby-hero > img { display: block; width: 100%; max-width: 260px; aspect-ratio: 1; object-fit: cover; border-radius: 50%; margin-inline: auto; }
+.charades-lobby-hero-copy { min-width: 0; }
+.charades-lobby-hero-copy .setup-label { color: #704de5; font-weight: 800; letter-spacing: .14em; font-size: .72rem; }
+.charades-lobby-hero-copy h2 { margin: 10px 0 6px; color: #231d31; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.05; }
+.charades-lobby-hero-copy p { margin: 0 0 20px; color: #706b7b; line-height: 1.6; }
+.charades-lobby-hero-copy button { min-height: 48px; padding: 0 20px; border: 0; border-radius: 13px; color: #fff; background: #704de5; font: inherit; font-weight: 750; cursor: pointer; }
+.charades-stepper { display: grid; grid-template-columns: repeat(3, 1fr); margin: 28px 0; border: 1px solid #3a0f3424; border-radius: 16px; background: #faf8fc; overflow: hidden; }
+.charades-stepper button { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 54px; border: 0; background: transparent; color: #777181; font: inherit; font-weight: 700; cursor: pointer; }
+.charades-stepper button + button { border-left: 1px solid #3a0f3418; }
+.charades-stepper button span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #716a7c; background: #eae6f0; font-size: .82rem; }
+.charades-stepper button.is-active { color: #3a0f34; background: #f0eaff; }
+.charades-stepper button.is-active span,.charades-stepper button.is-complete span { color: #fff; background: #704de5; }
+.charades-step-content { min-width: 0; }
+.charades-rules > header h2,.charades-review h2 { margin: 6px 0; color: #231d31; font-size: clamp(1.55rem, 3vw, 2rem); }
+.charades-rules > header p { margin: 0 0 24px; color: #777181; }
+.charades-choice-group { margin: 22px 0; }
+.charades-choice-group h3,.charades-review h3 { margin: 0 0 10px; color: #3a0f34; font-size: 1rem; }
+.charades-choice-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.charades-choice-grid button { min-height: 54px; padding: 10px; border: 1px solid #dcd6e2; border-radius: 13px; color: #3d3747; background: #fff; font: inherit; cursor: pointer; }
+.charades-choice-grid button[aria-pressed="true"] { border-color: #704de5; color: #4d31a2; background: #f1ebff; box-shadow: inset 0 0 0 1px #704de5; }
+.charades-choice-grid button strong,.charades-choice-grid button small { display: block; }
+.charades-choice-grid button small { margin-top: 5px; color: #777181; font-size: .78rem; line-height: 1.35; }
+.charades-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.charades-team-count,.charades-inline-settings label { display: grid; gap: 8px; color: #5e5868; font-weight: 700; }
+.charades-team-count { max-width: 260px; margin-top: 14px; }
+.charades-inline-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+.charades-inline-settings select,.charades-team-count select { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid #dcd6e2; border-radius: 12px; color: #302b39; background: #fff; font: inherit; }
+.charades-review { padding: 8px 0; }
+.charades-review-players { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 26px; }
+.charades-review-players span { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border: 1px solid #e4dfea; border-radius: 99px; background: #faf8fc; color: #302b39; font-weight: 650; }
+.charades-review-players img { width: 32px; height: 32px; border-radius: 50%; }
+.charades-review > p { margin: 8px 0; color: #686273; }
+.charades-edit-rules,.charades-back-step { padding: 10px 2px; border: 0; color: #704de5; background: transparent; font: inherit; font-weight: 750; cursor: pointer; }
+.charades-step-actions { display: flex; align-items: center; gap: 20px; margin-top: 22px; }
+.charades-step-actions .start-game-button { flex: 1; }
+.charades-step-actions .start-game-button:disabled { opacity: .5; cursor: not-allowed; }
+.charades-stepper button:focus-visible,.charades-choice-grid button:focus-visible,.charades-lobby-hero-copy button:focus-visible,.charades-back-step:focus-visible { outline: 3px solid #704de5; outline-offset: 2px; }
+@media (max-width: 600px) {
+  .charades-lobby-hero { grid-template-columns: minmax(0, 1fr); text-align: center; }
+  .charades-lobby-hero > img { width: min(58vw, 210px); }
+  .charades-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .charades-stepper button { gap: 6px; font-size: .86rem; }
+}
 @media (orientation: landscape) and (max-height: 560px) {
   .charades-setup { max-width: 1000px; padding-top: 18px; padding-bottom: 32px; }
   .charades-setup .setup-header { padding-block: 18px; }
