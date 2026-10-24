@@ -13,7 +13,6 @@ function CharadesGameScreen() {
   const [state, dispatch] = useReducer(matchReducer, null, () => {
     try { return createMatchState(buildCharadesGame(config)); } catch { return null; }
   });
-  const [revealedTurn, setRevealedTurn] = useState(-1);
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [doublePointsArmedFor, setDoublePointsArmedFor] = useState(null);
@@ -30,7 +29,6 @@ function CharadesGameScreen() {
   const pauseTriggerRef = useRef(null);
 
   const turn = state ? getTurnDetails(state.game, state.turnIndex, state.teams) : null;
-  const revealed = state ? revealedTurn === state.turnIndex : false;
   const doublePointsArmed = Boolean(state && turn && doublePointsArmedFor === `${state.turnIndex}:${turn.team.id}`);
   const stats = useMemo(() => state && getMatchStats(state), [state]);
 
@@ -85,6 +83,13 @@ function CharadesGameScreen() {
       previousFocus?.focus();
     };
   }, [pauseOpen, leaveConfirm]);
+
+  useEffect(() => {
+    if (!pauseOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [pauseOpen]);
 
   useEffect(() => {
     if (!tiltEnabled || state?.phase !== "acting" || state.paused || state.transition) return undefined;
@@ -154,7 +159,7 @@ function CharadesGameScreen() {
   }
 
   function restart() {
-    try { dispatch({ type: "RESTART", game: buildCharadesGame(config) }); setRevealedTurn(-1); neutralRef.current = null; }
+    try { dispatch({ type: "RESTART", game: buildCharadesGame(config) }); neutralRef.current = null; }
     catch { navigate("/game/charades"); }
   }
 
@@ -169,20 +174,16 @@ function CharadesGameScreen() {
       <header className="charades-hud">
         <button className="charades-icon-button" aria-label="Pause and exit" onClick={openPause}><ArrowLeft size={21}/></button>
         <div className="charades-hud-player"><span>ROUND {turn.roundNumber} / {state.game.roundCount}</span><strong>{turn.team.name} · {turn.actingPlayer}</strong></div>
-        {state.phase === "acting" ? <div className={`charades-timer ${state.timeLeft <= 10 ? "is-urgent" : ""}`} role="timer" aria-label={`${state.timeLeft} seconds remaining`}><Clock3 size={15}/><strong>{state.timeLeft}</strong><span>s</span></div> : <div className="charades-timer charades-timer-ready"><Clock3 size={15}/><strong>{state.game.turnDuration}</strong><span>s</span></div>}
+        {state.phase === "acting" ? <div className={`charades-timer ${state.timeLeft <= 10 ? "is-urgent" : ""}`} role="timer" aria-label={`${state.timeLeft} seconds remaining`}><Clock3 size={15}/><strong>{state.timeLeft}</strong><span>s</span></div> : <div className="charades-ready-badge" aria-label="Ready">READY</div>}
       </header>
 
       <section className={`charades-stage ${state.phase === "acting" ? "is-acting" : "is-preparing"}`} aria-live="polite">
         {state.phase === "preparation" ? <div className="charades-prep">
-          <span className="charades-eyebrow">PASS THE PHONE</span>
+          <span className="charades-eyebrow">YOUR TURN IS NEXT</span>
           <h1>Ready, {turn.actingPlayer}?</h1>
-          <p>Keep the screen facing you. Act without speaking while your team guesses the Telugu movie.</p>
+          <p>Pass the phone to {turn.actingPlayer} and make sure everyone is ready.</p>
           <div className="charades-prep-meta"><span>TURN {state.turnIndex + 1} OF {state.game.totalTurns}</span><span>{turn.team.score} POINTS</span></div>
-          {state.currentPrompt ? revealed ? <div className="charades-reveal">
-            <span className="charades-eyebrow">YOUR MOVIE · {state.currentPrompt.year}</span>
-            <h2>{state.currentPrompt.prompt}</h2>
-            <button className="charades-button charades-button-primary" onClick={() => dispatch({ type: "START" })}>Start acting · {state.game.turnDuration}s</button>
-          </div> : <button className="charades-button charades-button-primary charades-reveal-button" onClick={() => setRevealedTurn(state.turnIndex)}>Reveal my movie</button> : <div className="charades-reveal"><h2>This deck is complete</h2><button className="charades-button charades-button-primary" onClick={() => dispatch({ type: "REPLAY_DECK" })}>Reshuffle and replay</button></div>}
+          {state.currentPrompt ? <button className="charades-button charades-button-primary charades-reveal-button" onClick={() => dispatch({ type: "START" })}>GO</button> : <div className="charades-reveal"><h2>This deck is complete</h2><button className="charades-button charades-button-primary" onClick={() => dispatch({ type: "REPLAY_DECK" })}>Reshuffle and replay</button></div>}
         </div> : <div className="charades-play">
           <div className="charades-prompt-wrap">
             <span className="charades-eyebrow">{state.result?.type === "correct" ? `CORRECT · +${state.result.points}` : state.result?.type === "skip" ? "SKIPPED · NO POINTS" : state.currentPrompt ? "ACT WITHOUT SPEAKING" : "DECK COMPLETE"}</span>

@@ -2740,6 +2740,30 @@ button:disabled {
 .charades-page .charades-dialog { color: var(--charades-deep-aubergine); background: var(--charades-ice-silver); }
 .charades-page.is-results { min-height: 100vh; min-height: 100svh; min-height: 100dvh; }
 .charades-page .charades-dialog { max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px); }
+.charades-page .charades-dialog-close { color: var(--charades-deep-aubergine); border-color: #3A0F3460; }
+.charades-page .charades-dialog-close:hover { background: #3A0F3412; }
+.charades-page .charades-dialog .charades-button-primary { color: var(--charades-ice-silver); background: var(--charades-deep-aubergine); border-color: var(--charades-deep-aubergine); }
+.charades-page .charades-dialog .charades-button-primary:hover:not(:disabled) { background: #4B1D45; filter: none; }
+.charades-page .charades-dialog .charades-button-secondary { color: var(--charades-deep-aubergine); background: transparent; border-color: #3A0F3460; }
+.charades-page .charades-dialog .charades-button-secondary:hover:not(:disabled) { background: #3A0F3412; }
+.charades-page .charades-dialog .charades-button-danger { color: #FFFFFF; background: #8F2342; border-color: #8F2342; }
+.charades-ready-badge { min-width: 56px; padding: 8px 7px; border: 1px solid var(--charades-border); border-radius: 99px; color: var(--charades-foreground); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-align: center; }
+.charades-page .charades-dialog { max-height: calc(100vh - 32px); }
+.charades-page .charades-dialog { max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px); }
+.charades-setup { width: 100%; max-width: 850px; min-width: 0; min-height: 0; height: auto; overflow: visible; }
+.charades-setup .selected-game { width: 100%; min-width: 0; padding: 18px; border: 1px solid #DDE3E850; border-radius: 18px; }
+.charades-setup .selected-game > div { min-width: 0; }
+.charades-setup .selected-game h2,
+.charades-setup .selected-game p { overflow-wrap: anywhere; }
+.charades-setup .selected-game-emoji { flex: 0 0 auto; font-size: clamp(28px, 8vw, 43px); }
+.charades-setup .setup-card { min-width: 0; }
+.charades-setup .selected-game + .player-heading { min-width: 0; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .charades-setup { max-width: 1000px; padding-top: 18px; padding-bottom: 32px; }
+  .charades-setup .setup-header { padding-block: 18px; }
+  .charades-setup .setup-game-icon { width: 60px; height: 60px; margin-bottom: 14px; }
+  .charades-setup .setup-game-icon span { font-size: 30px; }
+}
 @media (orientation: landscape) and (max-height: 560px) {
   .charades-page:not(.is-results) {
     display: grid;

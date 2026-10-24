@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
+import CharadesGame from "./CharadesGame.jsx";
 import { buildCharadesGame, createMatchState, getTiltAction, getTurnDetails, getWinningTeams, matchReducer } from "./logic.js";
 import { CHARADES_PROMPTS, getPromptDeck } from "./prompts.js";
 
@@ -43,6 +47,38 @@ describe("Telugu Charades", () => {
     const acting = matchReducer(s, { type: "START" });
     expect(acting.phase).toBe("acting");
     expect(acting.currentPrompt).toBe(s.deck[0]);
+  });
+  it("keeps Ready idle until GO and accepts GO only once", () => {
+    const ready = createMatchState(game(), () => 0);
+    expect(ready.phase).toBe("preparation");
+    expect(ready.timeLeft).toBe(ready.game.turnDuration);
+    expect(matchReducer(ready, { type: "TICK" })).toBe(ready);
+    expect(matchReducer(ready, { type: "ANSWER", correct: true })).toBe(ready);
+    const acting = matchReducer(ready, { type: "START" });
+    expect(acting.phase).toBe("acting");
+    expect(matchReducer(acting, { type: "START" })).toBe(acting);
+    expect(acting.timeLeft).toBe(ready.game.turnDuration);
+  });
+  it("renders the current player on Ready without exposing any movie title", () => {
+    const entry = { pathname: "/play/charades", state: { players: ["Rina", "Ari", "Sam"] } };
+    const currentPrompt = createMatchState(buildCharadesGame(entry.state), () => 0).currentPrompt.prompt;
+    const originalRandom = Math.random;
+    let markup;
+    try {
+      Math.random = () => 0;
+      markup = renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: [entry] }, createElement(CharadesGame)));
+    } finally { Math.random = originalRandom; }
+    expect(markup).toContain("Ready, Rina?");
+    expect(markup).toContain(">GO</button>");
+    expect(markup).not.toContain(currentPrompt);
+  });
+  it("moves from an ended acting turn to the next player's Ready state", () => {
+    const acting = started();
+    const ended = matchReducer(acting, { type: "END_TURN", reason: "ended" });
+    expect(ended.phase).toBe("preparation");
+    expect(ended.turnIndex).toBe(1);
+    expect(getTurnDetails(ended.game, ended.turnIndex, ended.teams).actingPlayer).toBe("B");
+    expect(ended.timeLeft).toBe(ended.game.turnDuration);
   });
   it("recovers safely when legacy match state has no inventory object", () => {
     const s = started();
