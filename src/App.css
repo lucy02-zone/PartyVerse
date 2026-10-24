@@ -182,3 +182,42 @@
     border-right-color: var(--border);
   }
 }
+
+/* Charades acting screen */
+.charades-page { min-height:100vh; padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom)); background:#fbfaff; }
+.charades-topbar { width:min(100%,900px); margin:0 auto 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.charades-panel { width:min(100%,760px); margin:0 auto; padding:clamp(20px,5vw,38px); border:1px solid #eeebf6; border-radius:24px; background:#fff; box-shadow:0 15px 50px #30204b08; text-align:center; }
+.charades-panel h1 { margin:10px 0; color:#2a2640; font-size:clamp(25px,5vw,38px); letter-spacing:-1px; }
+.charades-panel h1 span { color:#aaa3bb; }
+.charades-roundline { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#77758b; font-size:13px; }
+.charades-main-stats { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin:22px 0; }
+.charades-clock,.charades-score-chip,.charades-streak { min-height:54px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid #ece7fa; border-radius:16px; background:#faf8ff; color:#51466d; }
+.charades-clock strong { font-size:22px; font-variant-numeric:tabular-nums; }
+.charades-clock small { font-size:12px; }
+.charades-clock.is-urgent { border-color:#ffc7c7; background:#fff4f4; color:#b42336; }
+.charades-score-chip strong { color:#5a2ed6; font-size:20px; }
+.charades-card { margin:20px 0; padding:clamp(20px,4vw,30px); border:1px solid #eee8ff; border-radius:20px; background:#faf8ff; }
+.charades-card.answer-correct { border-color:#a8e5c1; background:#f2fff7; }
+.charades-card.answer-skip { border-color:#f5d59a; background:#fffaf0; }
+.charades-secret-prompt { min-height:74px; display:grid; place-items:center; margin:18px 0; color:#262238; font-size:clamp(26px,7vw,42px); font-weight:850; line-height:1.18; animation:charades-reveal .24s ease-out; }
+@keyframes charades-reveal { from {opacity:.35; transform:translateY(5px)} to {opacity:1; transform:translateY(0)} }
+.charades-actions,.charades-controls { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.charades-actions button,.charades-controls button { min-height:48px; }
+.charades-toggle { display:inline-flex; align-items:center; gap:7px; color:#51466d; font-size:13px; }
+.charades-toggle input { accent-color:#704de5; width:18px; height:18px; }
+.charades-scoreboard { margin:22px 0 0; padding:18px; border:1px solid #eeebf6; border-radius:18px; background:#fff; text-align:left; }
+.charades-scoreboard .leaderboard-header { justify-content:flex-start; }
+.charades-scoreboard .leaderboard-row { grid-template-columns:minmax(90px,1fr) auto auto; }
+.charades-scoreboard .leaderboard-row.is-current { border-color:#b9a5ff; background:#faf8ff; }
+.charades-summary-stats { display:flex; justify-content:center; flex-wrap:wrap; gap:9px; margin:18px 0; }
+.charades-summary-stats span { padding:9px 12px; border:1px solid #ece7fa; border-radius:999px; color:#51466d; font-size:13px; }
+.charades-results .charades-scoreboard { max-width:600px; margin-inline:auto; }
+.charades-results .charades-actions { margin-top:22px; }
+@media (max-width:600px) { .charades-page { padding-left:10px; padding-right:10px; } .charades-panel { padding:20px 14px; border-radius:18px; } .charades-scoreboard { padding:12px; } .charades-scoreboard .leaderboard-row { display:grid; grid-template-columns:1fr auto; } .charades-scoreboard .leaderboard-row strong { grid-column:1/-1; } .charades-actions button { flex:1 1 42%; } }
+@media (prefers-reduced-motion: reduce) { .charades-secret-prompt { animation:none; } }
+.charades-powerups { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px; margin:14px 0 4px; }
+.charades-powerups > span { flex-basis:100%; color:#77758b; font-size:12px; }
+.charades-powerups button { min-height:42px; }
+.charades-achievements { display:grid; gap:8px; margin:18px auto; max-width:600px; padding:14px; border-radius:14px; background:#faf8ff; color:#51466d; }
+.charades-achievements h2 { margin:0; font-size:16px; }
+.charades-achievements span { font-size:13px; }
