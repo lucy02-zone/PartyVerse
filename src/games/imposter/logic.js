@@ -302,3 +302,9 @@ export function getVoteResult(votes, imposterId) {
     winner: eliminated === imposterId ? "players" : "imposter",
   };
 }
+
+export function addImposterVote(votes, voter, target, eligiblePlayers) {
+  if (!votes || typeof votes !== "object" || !Array.isArray(eligiblePlayers)) return null;
+  if (!eligiblePlayers.includes(voter) || !eligiblePlayers.includes(target) || voter === target || Object.hasOwn(votes, voter)) return null;
+  return { ...votes, [voter]: target };
+}

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { games } from "../data/games.js";
 import Navbar from "../components/Navbar.jsx";
-import { createDefaultPlayers, removePlayerFromRoster } from "../games/charades/logic.js";
+import { createDefaultPlayers, getPlayerColor, removePlayerFromRoster, validatePlayerName } from "../utils/playerSetup.js";
 
 const playerLimits = {
   imposter: { min: 3, max: 12 },
@@ -20,18 +20,9 @@ const playerLimits = {
   charades: { min: 2, max: 16 },
 };
 
-const avatarPalette = [
-  { bg: "#f0ebff", accent: "#704de5", hair: "#3b2e2b", shirt: "#8e6be8" },
-  { bg: "#ecfdf5", accent: "#12a26d", hair: "#3f2e2f", shirt: "#43c59e" },
-  { bg: "#fff3e5", accent: "#f59e0b", hair: "#2d1d1c", shirt: "#f4a261" },
-  { bg: "#e0f2fe", accent: "#0ea5e9", hair: "#2b2d42", shirt: "#60a5fa" },
-  { bg: "#fdf2f8", accent: "#ec4899", hair: "#4a2d2d", shirt: "#f472b6" },
-  { bg: "#f1f5f9", accent: "#64748b", hair: "#2e1e2f", shirt: "#94a3b8" },
-];
-
 function getPlayerAvatar(player, index) {
   const safeName = (player || "P").trim() || "P";
-  const palette = avatarPalette[index % avatarPalette.length];
+  const palette = getPlayerColor(index);
   const initials = safeName
     .split(/\s+/)
     .filter(Boolean)
@@ -41,14 +32,14 @@ function getPlayerAvatar(player, index) {
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-      <rect width="64" height="64" rx="16" fill="${palette.bg}"/>
+      <rect width="64" height="64" rx="16" fill="${palette.background}"/>
       <circle cx="32" cy="24" r="13" fill="#f7d3b6"/>
       <path d="M18 22c1-9 9-14 17-14 8 0 14 6 15 14-4-4-9-6-15-6-8 0-13 2-17 6Z" fill="${palette.hair}"/>
       <ellipse cx="27" cy="25" rx="1.5" ry="2.2" fill="#2b2438"/>
       <ellipse cx="37" cy="25" rx="1.5" ry="2.2" fill="#2b2438"/>
       <path d="M27 31c2 2 8 2 10 0" stroke="#9d5c4e" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-      <path d="M20 46c3-6 10-9 12-9s9 3 12 9v10H20V46Z" fill="${palette.shirt}"/>
-      <text x="32" y="57" text-anchor="middle" font-size="8" font-family="Arial, sans-serif" font-weight="700" fill="${palette.accent}">${initials}</text>
+      <path d="M20 46c3-6 10-9 12-9s9 3 12 9v10H20V46Z" fill="${palette.background}"/>
+      <text x="32" y="57" text-anchor="middle" font-size="8" font-family="Arial, sans-serif" font-weight="700" fill="${palette.foreground}">${initials}</text>
     </svg>
   `;
 
@@ -63,7 +54,7 @@ export default function RoomSetup() {
   const game = games.find((item) => item.id === gameId);
   const limits = playerLimits[gameId] || { min: 2, max: 10 };
 
-  const [players, setPlayers] = useState(() => gameId === "charades" ? createDefaultPlayers(location.state?.players) : []);
+  const [players, setPlayers] = useState(() => createDefaultPlayers(limits.min, location.state?.players));
   const [newPlayer, setNewPlayer] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingValue, setEditingValue] = useState("");
@@ -87,6 +78,24 @@ export default function RoomSetup() {
   });
   const [charadesStep, setCharadesStep] = useState(0);
 
+  useEffect(() => {
+    setPlayers(createDefaultPlayers(limits.min, location.state?.players));
+    setNewPlayer("");
+    setEditingIndex(null);
+    setEditingValue("");
+    setMessage("");
+    setCharadesStep(0);
+    setCharadesConfig({
+      era: location.state?.era || null,
+      difficulty: location.state?.difficulty || "Mixed",
+      roundCount: location.state?.roundCount || 3,
+      turnDuration: location.state?.turnDuration || 60,
+      teamMode: location.state?.teamMode || "individual",
+      teamCount: location.state?.teamCount || 2,
+    });
+    setImposterConfig({ category: location.state?.category || "Mixed" });
+  }, [gameId, location.key]);
+
   if (!game) {
     return (
       <main className="setup-error">
@@ -99,24 +108,12 @@ export default function RoomSetup() {
   function addPlayer(event) {
     event.preventDefault();
 
-    const name = newPlayer.trim();
-
-    if (!name) {
-      setMessage("Please enter a player name.");
-      return;
-    }
+    const checkedName = validatePlayerName(newPlayer, players);
+    if (!checkedName.valid) { setMessage(checkedName.message); return; }
+    const name = checkedName.name;
 
     if (players.length >= limits.max) {
       setMessage(`This game supports up to ${limits.max} players.`);
-      return;
-    }
-
-    const alreadyExists = players.some(
-      (player) => player.toLowerCase() === name.toLowerCase()
-    );
-
-    if (alreadyExists) {
-      setMessage("Each player must have a unique name.");
       return;
     }
 
@@ -126,11 +123,17 @@ export default function RoomSetup() {
   }
 
   function removePlayer(index) {
-    if (gameId === "charades" && players.length <= limits.min) {
-      setMessage("Charades needs at least 2 players.");
+    if (players.length <= limits.min) {
+      setMessage(`${game.title} needs at least ${limits.min} players.`);
       return;
     }
-    setPlayers((current) => gameId === "charades" ? removePlayerFromRoster(current, index, limits.min) : current.filter((_, playerIndex) => playerIndex !== index));
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      setEditingValue("");
+    } else if (editingIndex !== null && editingIndex > index) {
+      setEditingIndex((current) => current - 1);
+    }
+    setPlayers((current) => removePlayerFromRoster(current, index, limits.min));
     if (gameId === "charades" && charadesConfig.teamMode === "teams") {
       setCharadesConfig((current) => ({ ...current, teamCount: Math.min(current.teamCount, Math.max(2, Math.min(players.length - 1, 6))) }));
     }
@@ -148,22 +151,9 @@ export default function RoomSetup() {
       return;
     }
 
-    const trimmedName = editingValue.trim();
-
-    if (!trimmedName) {
-      setMessage("Player name cannot be empty.");
-      return;
-    }
-
-    const duplicateExists = players.some(
-      (player, playerIndex) =>
-        playerIndex !== editingIndex && player.toLowerCase() === trimmedName.toLowerCase()
-    );
-
-    if (duplicateExists) {
-      setMessage("Each player must have a unique name.");
-      return;
-    }
+    const checkedName = validatePlayerName(editingValue, players, editingIndex);
+    if (!checkedName.valid) { setMessage(checkedName.message); return; }
+    const trimmedName = checkedName.name;
 
     setPlayers((current) =>
       current.map((player, playerIndex) =>
@@ -182,9 +172,9 @@ export default function RoomSetup() {
   }
 
   function prepareGame() {
-    if (players.length < limits.min) {
+    if (players.length < limits.min || players.length > limits.max) {
       setMessage(
-        `Add at least ${limits.min} players to play ${game.title}.`
+        `Add ${limits.min} to ${limits.max} players to play ${game.title}.`
       );
       return;
     }
@@ -297,9 +287,7 @@ export default function RoomSetup() {
 
           <h1>{gameId === "charades" ? "Build your Charades lobby" : "Set up your game"}</h1>
 
-        <p>
-            {gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : "Gather your friends, add their names, and get ready to play."}
-          </p>
+          <p>{gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : `Add or edit your players below. ${limits.min}–${limits.max} players can join.`}</p>
         </section>
 
         <section className="setup-card">
@@ -335,7 +323,7 @@ export default function RoomSetup() {
                 <Users size={20} />
                 Players
               </h2>
-              <p>Add names for everyone joining the game.</p>
+              <p>Tap a name to edit it. {limits.min}–{limits.max} players can join.</p>
             </div>
 
             <span className="player-total">
@@ -366,7 +354,7 @@ export default function RoomSetup() {
               </div>
             ) : (
               players.map((player, index) => (
-                <div className="player-row" key={`${player}-${index}`}>
+                <div className="player-row" key={`${player}-${index}`} style={{ "--player-color": getPlayerColor(index).background, "--player-foreground": getPlayerColor(index).foreground }} title={`${player} · ${getPlayerColor(index).name}`}>
                   <img
                     className="player-avatar"
                     src={getPlayerAvatar(player, index)}
@@ -382,7 +370,7 @@ export default function RoomSetup() {
                       type="text"
                       value={editingValue}
                       onChange={(event) => setEditingValue(event.target.value)}
-                      onBlur={gameId === "charades" ? undefined : saveEditedPlayer}
+                      onFocus={(event) => event.currentTarget.scrollIntoView({ behavior: "smooth", block: "center" })}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           event.preventDefault();
@@ -396,7 +384,7 @@ export default function RoomSetup() {
                       maxLength={30}
                       aria-label={`Rename ${player}`}
                     />
-                    {gameId === "charades" && <><button type="button" className="player-edit-save" onClick={saveEditedPlayer}>Save</button><button type="button" className="player-edit-cancel" onClick={cancelEditingPlayer}>Cancel</button></>}
+                    <button type="button" className="player-edit-save" onClick={saveEditedPlayer}>Save</button><button type="button" className="player-edit-cancel" onClick={cancelEditingPlayer}>Cancel</button>
                     </div>
                   ) : (
                     <button
@@ -412,7 +400,7 @@ export default function RoomSetup() {
 
                   <span className="player-number">#{index + 1}</span>
 
-                  {(gameId !== "charades" || players.length > limits.min) && <button
+                  {players.length > limits.min && <button
                     type="button"
                     className="remove-player-button"
                     onClick={() => removePlayer(index)}
@@ -576,6 +564,10 @@ export default function RoomSetup() {
           >
             Prepare game <span>→</span>
           </button>}
+
+          {gameId === "mafia" && <Link to="/play/mafia/online" className="online-mafia-entry-link">
+            <Users size={18} /> Play Online with separate devices <span aria-hidden="true">→</span>
+          </Link>}
 
           {gameId !== "charades" && <p className="setup-note">
             Add your players and prepare for game night!

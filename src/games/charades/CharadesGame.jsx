@@ -2,6 +2,7 @@ import { Component, useEffect, useMemo, useReducer, useRef, useState } from "rea
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock3, Pause, Play, RotateCcw, SkipForward, Trophy, Smartphone, Zap, X } from "lucide-react";
 import { buildCharadesGame, createMatchState, getLeaderboard, getMatchStats, getTiltAction, getTurnDetails, matchReducer } from "./logic.js";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 const MOTION_THRESHOLD = 22;
 const COOLDOWN_MS = 1000;
@@ -29,6 +30,8 @@ function CharadesGameScreen() {
   const pauseTriggerRef = useRef(null);
 
   const turn = state ? getTurnDetails(state.game, state.turnIndex, state.teams) : null;
+  const actingPlayerIndex = state && turn ? state.game.players.indexOf(turn.actingPlayer) : 0;
+  const turnColor = getPlayerColor(actingPlayerIndex);
   const doublePointsArmed = Boolean(state && turn && doublePointsArmedFor === `${state.turnIndex}:${turn.team.id}`);
   const stats = useMemo(() => state && getMatchStats(state), [state]);
 
@@ -180,7 +183,7 @@ function CharadesGameScreen() {
 
   return <main className={`charades-page ${state.phase === "results" ? "is-results" : ""}`} data-prompt-color={(state.promptVersion || 0) % 3}>
     {state.phase !== "results" ? <>
-      <header className="charades-hud">
+      <header className="charades-hud" style={{ "--player-color": turnColor.background, "--player-foreground": turnColor.foreground }}>
         <button className="charades-icon-button" aria-label="Pause and exit" onClick={openPause}><ArrowLeft size={21}/></button>
         <div className="charades-hud-player"><span>ROUND {turn.roundNumber} / {state.game.roundCount}</span><strong>{turn.team.name} · {turn.actingPlayer}</strong></div>
         {state.phase === "acting" ? <div className={`charades-timer ${state.timeLeft <= 10 ? "is-urgent" : ""}`} role="timer" aria-label={`${state.timeLeft} seconds remaining`}><Clock3 size={15}/><strong>{state.timeLeft}</strong><span>s</span></div> : <div className="charades-ready-badge" aria-label="Ready">READY</div>}
@@ -221,12 +224,12 @@ function CharadesGameScreen() {
         </div>}
       </section>
 
-      <footer className="charades-footer"><div className="charades-footer-copy"><strong>{turn.team.name}</strong><span>{turn.team.correctAnswers} correct · best streak {turn.team.longestStreak}</span></div><div className="charades-score-dots" aria-label={`${turn.team.score} points`}><span>{turn.team.score}</span><small>PTS</small></div></footer>
+      <footer className="charades-footer" style={{ "--player-color": turnColor.background, "--player-foreground": turnColor.foreground }}><div className="charades-footer-copy"><strong>{turn.team.name}</strong><span>{turn.team.correctAnswers} correct · best streak {turn.team.longestStreak}</span></div><div className="charades-score-dots" aria-label={`${turn.team.score} points`}><span>{turn.team.score}</span><small>PTS</small></div></footer>
     </> : <section className="charades-results">
       <div className="charades-result-icon"><Trophy size={27}/></div><span className="charades-eyebrow">MATCH COMPLETE</span>
       <h1>{winners.length === 1 ? `${winners[0].name} wins` : winners.length ? "It’s a tie" : "Game complete"}</h1>
       <p className="charades-results-intro">A round well played. Here are the final scores.</p>
-      <div className="charades-scoreboard">{getLeaderboard(state.teams).map((team, index) => <div className={`charades-leader-row ${stats.winnerIds.includes(team.id) ? "is-winner" : ""}`} key={team.id}><span className="charades-rank">{index + 1}</span><span className="charades-leader-name">{team.name}<small>{team.correctAnswers} correct · {team.skippedPrompts} skips · best streak {team.longestStreak}</small></span><strong>{team.score}<small>PTS</small></strong></div>)}</div>
+      <div className="charades-scoreboard">{getLeaderboard(state.teams).map((team, index) => { const color = getPlayerColor(Number(team.id.replace("team-", "")) - 1); return <div className={`charades-leader-row ${stats.winnerIds.includes(team.id) ? "is-winner" : ""}`} key={team.id} style={{ "--player-color": color.background, "--player-foreground": color.foreground }}><span className="charades-rank">{index + 1}</span><span className="charades-leader-name">{team.name}<small>{team.correctAnswers} correct · {team.skippedPrompts} skips · best streak {team.longestStreak}</small></span><strong>{team.score}<small>PTS</small></strong></div>; })}</div>
       <div className="charades-summary-stats"><span>{stats.accuracy}% accuracy</span><span>{stats.correct} correct</span><span>{stats.skips} skips</span>{stats.fastestCorrect !== null && <span>{stats.fastestCorrect}s fastest</span>}</div>
       <div className="charades-result-actions"><button className="charades-button charades-button-primary" onClick={restart}><RotateCcw size={18}/> Play again</button><button className="charades-button charades-button-secondary" onClick={() => navigate("/game/charades", { state: { players: state.game.players, era: state.game.era, difficulty: state.game.difficulty, roundCount: state.game.roundCount, turnDuration: state.game.turnDuration, teamMode: state.game.teamMode, teamCount: state.game.teamCount } })}>Back to setup</button><button className="charades-text-button" onClick={async () => { try { await navigator.clipboard.writeText(shareSummary); } catch { window.prompt("Copy results", shareSummary); } }}>Copy results</button></div>
     </section>}

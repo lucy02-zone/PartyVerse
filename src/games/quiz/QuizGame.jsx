@@ -10,6 +10,7 @@ import {
   Vote,
 } from "lucide-react";
 import { applyPlayerAnswer, buildQuizGame, getAccuracy, getLeaderboard, getWinnerNames } from "./logic.js";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 export default function QuizGame() {
   const location = useLocation();
@@ -167,7 +168,7 @@ export default function QuizGame() {
               {game.category} · {game.difficulty} · QUESTION {currentQuestionIndex + 1} OF {game.questions.length}
             </span>
 
-            <h1>{currentPlayer.name}, you’re up</h1>
+            <h1><span className="player-identity-label" style={{ "--player-color": getPlayerColor(currentPlayerIndex).background, "--player-foreground": getPlayerColor(currentPlayerIndex).foreground }}>{currentPlayer.name}</span>, you’re up</h1>
 
             <p className="quiz-subtitle">
               Answer before the timer expires. Each correct answer is worth 10 points.
@@ -229,7 +230,7 @@ export default function QuizGame() {
               </div>
 
               {leaderboard.map((player, index) => (
-                <div key={player.name} className="leaderboard-row">
+                <div key={player.name} className="leaderboard-row" style={{ "--player-color": getPlayerColor(game.players.findIndex((entry) => entry.name === player.name)).background, "--player-foreground": getPlayerColor(game.players.findIndex((entry) => entry.name === player.name)).foreground }}>
                   <span className="leaderboard-rank">#{index + 1}</span>
                   <span>{player.name}</span>
                   <strong>{player.score} pts</strong>
@@ -265,7 +266,7 @@ export default function QuizGame() {
               </div>
 
               {getLeaderboard(game.players).map((player, index) => (
-                <div key={player.name} className="results-row">
+                <div key={player.name} className="results-row" style={{ "--player-color": getPlayerColor(game.players.findIndex((entry) => entry.name === player.name)).background, "--player-foreground": getPlayerColor(game.players.findIndex((entry) => entry.name === player.name)).foreground }}>
                   <div className="result-name">
                     <span>#{index + 1}</span>
                     <strong>{player.name}</strong>

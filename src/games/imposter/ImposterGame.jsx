@@ -1,11 +1,10 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Eye,
   EyeOff,
-  Users,
   Vote,
   RotateCcw,
   Clock,
@@ -14,7 +13,9 @@ import {
   createImposterRound,
   getCategories,
   getVoteResult,
+  addImposterVote,
 } from "./logic.js";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 import lockImage from "./lock.png";
 import discussionImage from "./dicussion.png";
 
@@ -49,6 +50,7 @@ export default function ImposterGame() {
   // Discussion countdown timer
   const [seconds, setSeconds] = useState(60);
   const [timerRunning, setTimerRunning] = useState(true);
+  const submittedVotersRef = useRef(new Set());
 
   useEffect(() => {
     if (phase !== "discussion" || !timerRunning || seconds <= 0) {
@@ -98,13 +100,11 @@ export default function ImposterGame() {
 
   function submitVote(event) {
     event.preventDefault();
-
-    if (!voteTarget) return;
-
-    const updatedVotes = {
-      ...votes,
-      [round.assignments[voterIndex].player]: voteTarget,
-    };
+    const voter = round.assignments[voterIndex]?.player;
+    if (phase !== "voting" || !voter || submittedVotersRef.current.has(voter)) return;
+    const updatedVotes = addImposterVote(votes, voter, voteTarget, players);
+    if (!updatedVotes) return;
+    submittedVotersRef.current.add(voter);
 
     setVotes(updatedVotes);
     setVoteTarget("");
@@ -128,6 +128,15 @@ export default function ImposterGame() {
     setResult(null);
     setSeconds(60);
     setTimerRunning(true);
+    submittedVotersRef.current.clear();
+  }
+
+  function startVoting() {
+    submittedVotersRef.current.clear();
+    setVotes({});
+    setVoteTarget("");
+    setVoterIndex(0);
+    setPhase("voting");
   }
 
   function handleCategoryChange(event) {
@@ -142,7 +151,7 @@ export default function ImposterGame() {
   }
 
   return (
-    <main className="imposter-page">
+    <main className={`imposter-page ${phase === "voting" ? "imposter-voting-page" : ""}`}>
       <header className="imposter-topbar">
         <Link to="/" className="back-link">
           <ArrowLeft size={17} />
@@ -152,7 +161,7 @@ export default function ImposterGame() {
         <span className="imposter-badge">Find the Imposter</span>
       </header>
 
-      <section className="imposter-panel">
+      <section className={`imposter-panel ${phase === "voting" ? "imposter-panel-voting" : ""}`}>
         {/* PRIVATE ROLE REVEAL */}
         {phase === "reveal" && (
           <>
@@ -177,7 +186,7 @@ export default function ImposterGame() {
                       className="secret-lock-image"
                     />
                   </div>
-                  <h2>{currentPlayer.player}</h2>
+                  <h2 className="player-identity-label" style={{ "--player-color": getPlayerColor(players.indexOf(currentPlayer.player)).background, "--player-foreground": getPlayerColor(players.indexOf(currentPlayer.player)).foreground }}>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
 
                   <button
@@ -246,6 +255,7 @@ export default function ImposterGame() {
                 <span
                   key={player}
                   className={index <= currentIndex ? "progress-active" : ""}
+                  style={{ "--player-color": getPlayerColor(index).background }}
                 />
               ))}
             </div>
@@ -273,15 +283,17 @@ export default function ImposterGame() {
                 />
               </div>
 
-              <h2>Discuss your clues</h2>
+              <h2>Discussion phase</h2>
 
               <p>
                 The imposter must blend in using the clue only and stay calm.
               </p>
 
+              <p className="imposter-game-context">Category: <strong>{round.category}</strong> · Keep clues broad and never say the secret word.</p>
+
               <div className="player-chips">
-                {players.map((player) => (
-                  <span key={player}>{player}</span>
+                {players.map((player, index) => (
+                  <span key={player} style={{ "--player-color": getPlayerColor(index).background, "--player-foreground": getPlayerColor(index).foreground }}><b>{index + 1}</b>{player}</span>
                 ))}
               </div>
             </div>
@@ -330,7 +342,7 @@ export default function ImposterGame() {
             <button
               type="button"
               className="primary-button full-button"
-              onClick={() => setPhase("voting")}
+              onClick={startVoting}
             >
               <Vote size={18} />
               Start voting
@@ -340,17 +352,11 @@ export default function ImposterGame() {
 
         {/* VOTING */}
         {phase === "voting" && (
-          <>
-            <span className="section-kicker">
-              VOTING · PLAYER {voterIndex + 1} OF {players.length}
-            </span>
-
-            <h1>Cast your vote</h1>
-
-            <p className="imposter-subtitle">
-              Pass the device to {round.assignments[voterIndex].player}.
-              Choose who you think the imposter is.
-            </p>
+          <div className="imposter-voting-screen" role="region" aria-labelledby="imposter-voting-title">
+            <span className="imposter-voting-kicker">PRIVATE BALLOT · ROUND 1</span>
+            <h1 id="imposter-voting-title">Cast your vote</h1>
+            <p className="imposter-voting-copy">Pass the device to <strong style={{ "--player-color": getPlayerColor(players.indexOf(round.assignments[voterIndex].player)).background, "--player-foreground": getPlayerColor(players.indexOf(round.assignments[voterIndex].player)).foreground }}>{round.assignments[voterIndex].player}</strong>. Choose who you think the imposter is. Votes stay hidden until everyone has voted.</p>
+            <div className="imposter-vote-progress"><span>PLAYER {voterIndex + 1} OF {players.length}</span><span>{Object.keys(votes).length} SUBMITTED</span></div>
 
             <form
               className="voting-form"
@@ -362,10 +368,14 @@ export default function ImposterGame() {
                   (player) =>
                     player !== round.assignments[voterIndex].player
                 )
-                .map((player) => (
+                .map((player) => {
+                  const playerIndex = players.indexOf(player);
+                  const color = getPlayerColor(playerIndex);
+                  return (
                   <label
                     key={player}
-                    className={`vote-option ${
+                    style={{ "--player-color": color.background, "--player-foreground": color.foreground }}
+                    className={`vote-option imposter-vote-option ${
                       voteTarget === player ? "vote-selected" : ""
                     }`}
                   >
@@ -377,22 +387,22 @@ export default function ImposterGame() {
                       onChange={() => setVoteTarget(player)}
                     />
 
-                    <Users size={17} />
-                    {player}
+                    <span className="vote-player-number">{playerIndex + 1}</span>
+                    <span className="vote-player-name">{player}</span>
+                    <span className="vote-choice-label">{voteTarget === player ? "SELECTED" : "TAP TO SELECT"}</span>
                   </label>
-                ))}
+                )})}
 
               <button
                 className="primary-button full-button"
                 type="submit"
                 disabled={!voteTarget}
               >
-                {voterIndex === players.length - 1
-                  ? "Reveal results"
-                  : "Submit & pass device"}
+                {voterIndex === players.length - 1 ? "Submit final vote" : "Confirm vote & pass"}
               </button>
+              <p className="imposter-vote-status" role="status">{voteTarget ? `Selected: ${voteTarget}. Confirm to submit your private vote.` : "Your vote is pending. Select one player to continue."}</p>
             </form>
-          </>
+          </div>
         )}
 
         {/* RESULTS */}
@@ -427,6 +437,9 @@ export default function ImposterGame() {
               <p className="result-votes">
                 Votes cast: {Object.keys(votes).length}
               </p>
+              <div className="imposter-vote-results" aria-label="Vote totals">
+                {Object.entries(result.counts || {}).sort((a, b) => b[1] - a[1]).map(([player, count]) => <div key={player} style={{ "--player-color": getPlayerColor(players.indexOf(player)).background, "--player-foreground": getPlayerColor(players.indexOf(player)).foreground }}><span>{player}</span><strong>{count} {count === 1 ? "vote" : "votes"}</strong></div>)}
+              </div>
             </div>
 
             <button
@@ -441,7 +454,7 @@ export default function ImposterGame() {
             <button
               type="button"
               className="secondary-button full-button"
-              onClick={() => navigate("/game/imposter")}
+              onClick={() => navigate("/game/imposter", { state: { players, category: selectedCategory } })}
             >
               Back to setup
             </button>

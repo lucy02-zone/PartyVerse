@@ -9,6 +9,7 @@ import {
   Shield,
 } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 function getWinner(players) {
   const alivePlayers = players.filter((player) => player.alive);
@@ -228,6 +229,7 @@ export default function MafiaNight() {
 
                 <select
                   value={mafiaTarget}
+                  style={{ "--player-color": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === mafiaTarget))).background, "--player-foreground": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === mafiaTarget))).foreground }}
                   onChange={(event) =>
                     setMafiaTarget(event.target.value)
                   }
@@ -258,6 +260,7 @@ export default function MafiaNight() {
 
                   <select
                     value={doctorTarget}
+                    style={{ "--player-color": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === doctorTarget))).background, "--player-foreground": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === doctorTarget))).foreground }}
                     onChange={(event) =>
                       setDoctorTarget(event.target.value)
                     }
@@ -289,6 +292,7 @@ export default function MafiaNight() {
 
                   <select
                     value={detectiveTarget}
+                    style={{ "--player-color": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === detectiveTarget))).background, "--player-foreground": getPlayerColor(Math.max(0, players.findIndex((player) => player.id === detectiveTarget))).foreground }}
                     onChange={(event) =>
                       setDetectiveTarget(event.target.value)
                     }

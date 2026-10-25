@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, Shield, Users } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
 import { assignMafiaRoles } from "./logic.js";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 export default function MafiaGame() {
   const location = useLocation();
@@ -90,16 +91,16 @@ export default function MafiaGame() {
 
           {!allRolesRevealed ? (
             <>
-              <div className="mafia-progress">
+              <div className="mafia-progress" style={{ "--player-color": getPlayerColor(currentIndex).background, "--player-foreground": getPlayerColor(currentIndex).foreground }}>
                 <Users size={18} />
                 Player {currentIndex + 1} of {assignedPlayers.length}
               </div>
 
-              <div className="role-card">
+              <div className="role-card" style={{ "--player-color": getPlayerColor(currentIndex).background, "--player-foreground": getPlayerColor(currentIndex).foreground }}>
                 {!revealed ? (
                   <>
                     <span className="role-card-label">NEXT PLAYER</span>
-                    <h2>{currentPlayer.name}</h2>
+                    <h2 className="player-identity-label" style={{ "--player-color": getPlayerColor(currentIndex).background, "--player-foreground": getPlayerColor(currentIndex).foreground }}>{currentPlayer.name}</h2>
                     <p>Make sure nobody else is looking at the screen.</p>
 
                     <button

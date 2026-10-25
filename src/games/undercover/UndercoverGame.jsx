@@ -10,6 +10,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { createUndercoverRound, getRoundWinner, getVoteResult } from "./logic.js";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 export default function UndercoverGame() {
   const location = useLocation();
@@ -153,7 +154,7 @@ export default function UndercoverGame() {
 
               {!revealed ? (
                 <>
-                  <h2>{currentPlayer.name}</h2>
+                  <h2 className="player-identity-label" style={{ "--player-color": getPlayerColor(players.indexOf(currentPlayer.name)).background, "--player-foreground": getPlayerColor(players.indexOf(currentPlayer.name)).foreground }}>{currentPlayer.name}</h2>
                   <p>Tap below to reveal your role and secret word.</p>
 
                   <button
@@ -261,8 +262,8 @@ export default function UndercoverGame() {
               </div>
 
               <div className="player-chips">
-                {players.map((player) => (
-                  <span key={player}>{player}</span>
+                {players.map((player, index) => (
+                  <span key={player} style={{ "--player-color": getPlayerColor(index).background, "--player-foreground": getPlayerColor(index).foreground }}><b>{index + 1}</b>{player}</span>
                 ))}
               </div>
             </div>
@@ -284,21 +285,14 @@ export default function UndercoverGame() {
             <form className="voting-form" onSubmit={submitVote}>
               {round.assignments
                 .filter((player) => player.name !== round.assignments[voterIndex].name)
-                .map((player) => (
-                  <label
-                    key={player.id}
-                    className={`vote-option ${voteTarget === player.name ? "vote-selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="voteTarget"
-                      value={player.name}
-                      checked={voteTarget === player.name}
-                      onChange={() => setVoteTarget(player.name)}
-                    />
-                    <span>{player.name}</span>
-                  </label>
-                ))}
+                .map((player) => {
+                  const index = players.indexOf(player.name);
+                  const color = getPlayerColor(index);
+                  return <label key={player.id} style={{ "--player-color": color.background, "--player-foreground": color.foreground }} className={`vote-option ${voteTarget === player.name ? "vote-selected" : ""}`}>
+                    <input type="radio" name="voteTarget" value={player.name} checked={voteTarget === player.name} onChange={() => setVoteTarget(player.name)} />
+                    <span className="vote-player-number">{index + 1}</span><span className="vote-player-name">{player.name}</span>
+                  </label>;
+                })}
 
               <button
                 type="submit"
@@ -350,7 +344,7 @@ export default function UndercoverGame() {
 
               <div className="result-role-grid">
                 {round.assignments.map((player) => (
-                  <div key={player.id} className="result-role-row">
+                  <div key={player.id} className="result-role-row" style={{ "--player-color": getPlayerColor(players.indexOf(player.name)).background, "--player-foreground": getPlayerColor(players.indexOf(player.name)).foreground }}>
                     <span>{player.name}</span>
                     <strong>{player.role}</strong>
                     <small>{player.word}</small>

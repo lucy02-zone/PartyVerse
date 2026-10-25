@@ -1,4 +1,5 @@
 import { getPromptDeck } from "./prompts.js";
+export { createDefaultPlayers, removePlayerFromRoster } from "../../utils/playerSetup.js";
 
 export const DEFAULT_TURN_DURATION = 60;
 export const STREAK_MILESTONES = [3, 5, 10];
@@ -9,15 +10,6 @@ export function createPowerUpInventory(source = {}) {
   return Object.fromEntries(POWER_UPS.map((name) => [name,
     Number.isInteger(source?.[name]) && source[name] >= 0 ? source[name] : 1,
   ]));
-}
-
-export function createDefaultPlayers(players = null) {
-  return Array.isArray(players) && players.length >= 2 ? [...players] : ["Player 1", "Player 2"];
-}
-
-export function removePlayerFromRoster(players, index, minimum = 2) {
-  if (!Array.isArray(players) || players.length <= minimum || !Number.isInteger(index) || index < 0 || index >= players.length) return players || [];
-  return players.filter((_, playerIndex) => playerIndex !== index);
 }
 
 export function getLeaderboard(teams = []) {

@@ -31,7 +31,7 @@ export default function GameCard({ game }) {
           </span>
 
           <Link
-            to={`/game/${game.id}`}
+            to={game.id === "mafia" ? "/play/mafia/online" : `/game/${game.id}`}
             className="play-link"
             aria-label={`Play ${game.title}`}
           >

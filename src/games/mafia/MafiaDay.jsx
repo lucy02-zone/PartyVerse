@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Sun, Users, Vote } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
+import { getPlayerColor } from "../../utils/playerSetup.js";
 
 function getWinner(players) {
   const alive = players.filter((player) => player.alive);
@@ -176,7 +177,7 @@ export default function MafiaDay() {
 
               <div className="day-player-list">
                 {alivePlayers.map((player) => (
-                  <div className="day-player-row" key={player.id}>
+                  <div className="day-player-row" key={player.id} style={{ "--player-color": getPlayerColor(players.indexOf(player)).background, "--player-foreground": getPlayerColor(players.indexOf(player)).foreground }}>
                     <div className="day-player-info">
                       <span className="player-avatar">
                         {player.name.charAt(0).toUpperCase()}
@@ -263,8 +264,8 @@ export default function MafiaDay() {
 
                   {showRoles && (
                     <div className="vote-results">
-                      {players.map((player) => (
-                        <p key={player.id}>
+                  {players.map((player, index) => (
+                    <p key={player.id} style={{ "--player-color": getPlayerColor(index).background, "--player-foreground": getPlayerColor(index).foreground }}>
                           {player.name}: {player.role}
                           {!player.alive ? " (eliminated)" : ""}
                         </p>
