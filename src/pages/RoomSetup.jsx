@@ -285,9 +285,9 @@ export default function RoomSetup() {
             LET'S GET THE PARTY STARTED
           </span>
 
-          <h1>{gameId === "charades" ? "Build your Charades lobby" : "Set up your game"}</h1>
+          <h1>{gameId === "charades" ? "Build your Charades lobby" : gameId === "imposter" ? "Prepare the secret round" : "Set up your game"}</h1>
 
-          <p>{gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : `Add or edit your players below. ${limits.min}–${limits.max} players can join.`}</p>
+          <p>{gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : gameId === "imposter" ? `Gather ${limits.min}–${limits.max} players, choose a category, then pass the device for private roles.` : `Add or edit your players below. ${limits.min}–${limits.max} players can join.`}</p>
         </section>
 
         <section className="setup-card">

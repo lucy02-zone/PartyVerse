@@ -71,7 +71,7 @@ export default function ImposterGame() {
 
   if (!round) {
     return (
-      <main className="imposter-page">
+      <main className="imposter-page" data-phase="invalid">
         <div className="imposter-panel">
           <h1>Let's get your team ready!</h1>
           <p>At least three players are needed to start this game.</p>
@@ -144,7 +144,7 @@ export default function ImposterGame() {
   }
 
   return (
-    <main className={`imposter-page ${phase === "voting" ? "imposter-voting-page" : ""}`}>
+    <main className={`imposter-page ${phase === "voting" ? "imposter-voting-page" : ""}`} data-phase={phase}>
       <header className="imposter-topbar">
         <Link to="/" className="back-link">
           <ArrowLeft size={17} />
@@ -154,14 +154,11 @@ export default function ImposterGame() {
         <span className="imposter-badge">Find the Imposter</span>
       </header>
 
-      <section className={`imposter-panel ${phase === "voting" ? "imposter-panel-voting" : ""}`}>
+      <section className={`imposter-panel imposter-panel-${phase} ${phase === "voting" ? "imposter-panel-voting" : ""}`}>
         {/* PRIVATE ROLE REVEAL */}
         {phase === "reveal" && (
           <>
-            <span className="section-kicker">
-              SECRET IDENTITY · PLAYER {currentIndex + 1} OF{" "}
-              {players.length}
-            </span>
+            <span className="section-kicker imposter-editorial-kicker">THE SECRET ROUND</span>
 
             <h1>Pass the device</h1>
 
@@ -179,6 +176,7 @@ export default function ImposterGame() {
                       className="secret-lock-image"
                     />
                   </div>
+                  <span className="imposter-player-position">PLAYER {String(currentIndex + 1).padStart(2, "0")} <i aria-hidden="true">/</i> {String(players.length).padStart(2, "0")}</span>
                   <h2 className="player-identity-label" style={{ "--player-color": getPlayerColor(players.indexOf(currentPlayer.player)).background, "--player-foreground": getPlayerColor(players.indexOf(currentPlayer.player)).foreground }}>{currentPlayer.player}</h2>
                   <p>Tap below to reveal your secret role.</p>
 

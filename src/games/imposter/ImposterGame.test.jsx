@@ -17,7 +17,8 @@ function renderImposter(players = ["Ari", "Bo", "Cam"]) {
 describe("Imposter reveal presentation", () => {
   it("starts with only the current player's identity face exposed to assistive technology", () => {
     const markup = renderImposter();
-    expect(markup).toContain("SECRET IDENTITY · PLAYER 1 OF 3");
+    expect(markup).toContain("THE SECRET ROUND");
+    expect(markup).toContain("PLAYER 01");
     expect(markup).toContain('class="secret-card-face secret-card-front" aria-hidden="false"');
     expect(markup).toContain('class="secret-card-face secret-card-back" aria-hidden="true" inert=""');
     expect(markup).toContain("Reveal my role");
@@ -26,6 +27,6 @@ describe("Imposter reveal presentation", () => {
   it("keeps invalid player counts on the setup guidance screen", () => {
     const markup = renderImposter(["Ari", "Bo"]);
     expect(markup).toContain("At least three players are needed to start this game.");
-    expect(markup).not.toContain("SECRET IDENTITY");
+    expect(markup).not.toContain("THE SECRET ROUND");
   });
 });
