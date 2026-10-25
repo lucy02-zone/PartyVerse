@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock3, Pause, Play, RotateCcw, SkipForward, Trophy, Smartphone, Zap, X } from "lucide-react";
 import { buildCharadesGame, createMatchState, getLeaderboard, getMatchStats, getTiltAction, getTurnDetails, matchReducer } from "./logic.js";
 import { getPlayerColor } from "../../utils/playerSetup.js";
+import ShareResultsButton from "../../components/ShareResultsButton.jsx";
+import { charadesResultSummary } from "../../lib/resultSummary.js";
 
 const MOTION_THRESHOLD = 22;
 const COOLDOWN_MS = 1000;
@@ -178,7 +180,7 @@ function CharadesGameScreen() {
   if (!state || !turn) return <main className="charades-page"><section className="charades-panel charades-error"><span className="charades-eyebrow">TELUGU MOVIE CHARADES</span><h1>Unable to start Charades</h1><p>Return to setup and add 2–16 unique players{config.players?.length ? "." : ". No player list was provided."}</p><button className="charades-button charades-button-primary" onClick={() => navigate("/game/charades")}>Back to setup</button></section></main>;
 
   const winners = stats.winnerIds.map((id) => state.teams.find((team) => team.id === id));
-  const shareSummary = `PartyVerse Telugu Charades · ${winners.length === 1 ? winners[0]?.name + " wins" : winners.map((w) => w.name).join(" & ") + " tie"} · ${state.teams.map((team) => `${team.name} ${team.score}`).join(" | ")} · ${stats.correct} correct, ${stats.skips} skips`;
+  const shareSummary = charadesResultSummary(winners, state.teams);
   const progress = Math.max(0, state.game.totalTurns - state.turnIndex);
 
   return <main className={`charades-page ${state.phase === "results" ? "is-results" : ""}`} data-prompt-color={(state.promptVersion || 0) % 3}>
@@ -231,7 +233,7 @@ function CharadesGameScreen() {
       <p className="charades-results-intro">A round well played. Here are the final scores.</p>
       <div className="charades-scoreboard">{getLeaderboard(state.teams).map((team, index) => { const color = getPlayerColor(Number(team.id.replace("team-", "")) - 1); return <div className={`charades-leader-row ${stats.winnerIds.includes(team.id) ? "is-winner" : ""}`} key={team.id} style={{ "--player-color": color.background, "--player-foreground": color.foreground }}><span className="charades-rank">{index + 1}</span><span className="charades-leader-name">{team.name}<small>{team.correctAnswers} correct · {team.skippedPrompts} skips · best streak {team.longestStreak}</small></span><strong>{team.score}<small>PTS</small></strong></div>; })}</div>
       <div className="charades-summary-stats"><span>{stats.accuracy}% accuracy</span><span>{stats.correct} correct</span><span>{stats.skips} skips</span>{stats.fastestCorrect !== null && <span>{stats.fastestCorrect}s fastest</span>}</div>
-      <div className="charades-result-actions"><button className="charades-button charades-button-primary" onClick={restart}><RotateCcw size={18}/> Play again</button><button className="charades-button charades-button-secondary" onClick={() => navigate("/game/charades", { state: { players: state.game.players, era: state.game.era, difficulty: state.game.difficulty, roundCount: state.game.roundCount, turnDuration: state.game.turnDuration, teamMode: state.game.teamMode, teamCount: state.game.teamCount } })}>Back to setup</button><button className="charades-text-button" onClick={async () => { try { await navigator.clipboard.writeText(shareSummary); } catch { window.prompt("Copy results", shareSummary); } }}>Copy results</button></div>
+      <div className="charades-result-actions"><button className="charades-button charades-button-primary" onClick={restart}><RotateCcw size={18}/> Play again</button><button className="charades-button charades-button-secondary" onClick={() => navigate("/game/charades", { state: { players: state.game.players, era: state.game.era, difficulty: state.game.difficulty, roundCount: state.game.roundCount, turnDuration: state.game.turnDuration, teamMode: state.game.teamMode, teamCount: state.game.teamCount } })}>Back to setup</button><ShareResultsButton summary={shareSummary} className="charades-text-button" /></div>
     </section>}
 
     {pauseOpen && <div className="charades-modal-backdrop"><section className="charades-dialog" role="dialog" aria-modal="true" aria-labelledby="charades-dialog-title" aria-describedby="charades-dialog-copy" ref={dialogRef}>

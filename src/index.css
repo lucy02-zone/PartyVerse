@@ -3283,3 +3283,207 @@ body:has(.online-mafia-page) .navbar .nav-cta:hover { background: #8F4F38; }
   .charades-page { transition: none; }
   .charades-page .charades-prompt { animation: none; }
 }
+
+/* PartyVerse discovery design system */
+:root {
+  --brand-vanilla: #FFF8EE;
+  --brand-tan: #D6B99B;
+  --brand-copper: #B86E4B;
+  --brand-copper-dark: #925238;
+  --brand-blush: #F0C9CE;
+  --brand-espresso: #30251F;
+  --brand-muted: #76665C;
+  --brand-border: #E5D8C9;
+  --brand-surface: #FFFCF7;
+  --brand-shadow: 0 16px 40px rgba(67, 43, 31, .08);
+  --brand-radius-card: 22px;
+  --brand-motion: 160ms ease;
+  color: var(--brand-espresso);
+  background: var(--brand-vanilla);
+  scroll-behavior: smooth;
+}
+body { color: var(--brand-espresso); background: var(--brand-vanilla); }
+.navbar { position: relative; z-index: 5; }
+.brand { color: var(--brand-espresso); }
+.brand-icon { color: #fff; background: var(--brand-copper); }
+.nav-links a { min-height: 42px; color: var(--brand-muted); transition: color var(--brand-motion); }
+.nav-links a:hover, .nav-links a.active { color: var(--brand-copper-dark); }
+.nav-cta, .primary-button { color: #fff; background: var(--brand-copper); transition: transform var(--brand-motion), background-color var(--brand-motion), box-shadow var(--brand-motion); }
+.nav-cta:hover, .primary-button:hover { background: var(--brand-copper-dark); box-shadow: 0 7px 18px rgba(146, 82, 56, .18); }
+.secondary-button { color: var(--brand-espresso); border-color: var(--brand-border); background: var(--brand-surface); transition: border-color var(--brand-motion), background-color var(--brand-motion), transform var(--brand-motion); }
+.secondary-button:hover { border-color: var(--brand-copper); background: #fff; }
+.eyebrow, .section-kicker { color: var(--brand-copper-dark); }
+.eyebrow { border-color: #E9D6C2; background: #F8E8D9; }
+.hero { min-height: 550px; padding-top: 64px; padding-bottom: 64px; color: var(--brand-espresso); }
+.hero h1 { text-wrap: balance; }
+.hero h1 span { color: var(--brand-copper); }
+.hero-description, .section-heading p, .about-section p { color: var(--brand-muted); }
+.hero-stats > div { color: var(--brand-copper); }
+.hero-stats strong { color: var(--brand-espresso); }
+.hero-stats small { color: var(--brand-muted); }
+.hero-visual { min-height: 430px; transform: none; }
+.hero-art-backdrop { position: absolute; width: min(85%, 390px); aspect-ratio: 1; border-radius: 44% 56% 54% 46% / 48% 40% 60% 52%; background: #F2DFCA; transform: rotate(-9deg); }
+.hero-art { position: absolute; display: block; overflow: hidden; border: 7px solid var(--brand-surface); border-radius: 22px; background: var(--brand-surface); box-shadow: var(--brand-shadow); transition: transform var(--brand-motion), box-shadow var(--brand-motion); }
+.hero-art:hover { z-index: 3; box-shadow: 0 22px 48px rgba(67, 43, 31, .15); }
+.hero-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero-art > span { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); padding: 7px 10px; border-radius: 99px; color: var(--brand-espresso); background: rgba(255, 252, 247, .94); font-size: 11px; font-weight: 800; }
+.hero-art-main { z-index: 1; width: min(66%, 300px); aspect-ratio: .82; top: 38px; left: 50%; transform: translateX(-50%) rotate(3deg); }
+.hero-art-main:hover { transform: translateX(-50%) translateY(-4px) rotate(1deg); }
+.hero-art-small { width: min(40%, 180px); aspect-ratio: .82; }
+.hero-art-mafia { z-index: 2; left: 1%; top: 90px; transform: rotate(-9deg); }
+.hero-art-mafia:hover { transform: translateY(-4px) rotate(-6deg); }
+.hero-art-quiz { z-index: 2; right: 0; bottom: 34px; transform: rotate(8deg); }
+.hero-art-quiz:hover { transform: translateY(-4px) rotate(5deg); }
+.hero-note { position: absolute; z-index: 2; right: 4%; top: 26px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 13px; border: 1px solid var(--brand-border); border-radius: 99px; color: var(--brand-espresso); background: var(--brand-surface); box-shadow: 0 8px 22px rgba(67,43,31,.07); font-size: 12px; font-weight: 700; }
+.games-section { background: #FFFCF7; }
+.section-heading { align-items: end; }
+.section-heading h2, .about-section h2 { color: var(--brand-espresso); }
+.section-heading p { font-size: 15px; }
+.surprise-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 15px; border: 1px solid #DAB99E; border-radius: 12px; color: var(--brand-copper-dark); background: #F8E8D9; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: background-color var(--brand-motion), transform var(--brand-motion); }
+.surprise-button:hover { background: #F2DCC7; transform: translateY(-1px); }
+.game-filters { max-width: 1144px; margin: -10px auto 25px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.game-filter { min-height: 40px; padding: 8px 13px; border: 1px solid var(--brand-border); border-radius: 99px; color: var(--brand-muted); background: var(--brand-surface); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: color var(--brand-motion), background-color var(--brand-motion), border-color var(--brand-motion), transform var(--brand-motion); }
+.game-filter:hover { border-color: var(--brand-copper); color: var(--brand-copper-dark); }
+.game-filter.is-active { border-color: var(--brand-copper); color: #fff; background: var(--brand-copper); }
+.game-count { margin-left: auto; border-color: var(--brand-border); color: var(--brand-muted); background: var(--brand-vanilla); }
+.games-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: stretch; }
+.game-card { grid-column: span 2; border-color: var(--brand-border); border-radius: var(--brand-radius-card); background: var(--brand-surface); box-shadow: 0 8px 24px rgba(67, 43, 31, .045); transition: transform var(--brand-motion), box-shadow var(--brand-motion), border-color var(--brand-motion); }
+.game-card:hover { border-color: #D9B89E; box-shadow: 0 16px 34px rgba(67, 43, 31, .1); transform: translateY(-3px); }
+.game-card:has(+ .game-card:last-child):nth-child(4) { grid-column: 2 / span 2; }
+.game-card-link { display: block; height: 100%; border-radius: inherit; color: inherit; }
+.game-card-link:focus-visible, .game-filter:focus-visible, .surprise-button:focus-visible, .nav-menu-toggle:focus-visible, .how-link:focus-visible { outline: 3px solid var(--brand-copper); outline-offset: 3px; }
+.game-art { min-height: 190px; aspect-ratio: 1.8; }
+.game-category { border-color: #fff; color: var(--brand-espresso); background: #FFFCF7E8; }
+.game-info { padding: 21px; }
+.game-info h3 { color: var(--brand-espresso); }
+.game-info > p { min-height: 44px; color: var(--brand-muted); font-size: 13px; }
+.game-card-bottom { border-color: var(--brand-border); }
+.player-count { color: var(--brand-muted); font-size: 12px; }
+.play-link { background: var(--brand-copper); }
+.games-empty { max-width: 1144px; margin: 22px auto; padding: 25px; border: 1px dashed var(--brand-border); border-radius: 16px; color: var(--brand-muted); text-align: center; }
+.how-section { max-width: 1144px; margin: 66px auto; padding: 0 28px; text-align: center; scroll-margin-top: 24px; }
+.how-heading h2 { margin: 10px 0; font-family: "Manrope", sans-serif; font-size: clamp(28px, 3vw, 38px); letter-spacing: -1.3px; }
+.how-heading p { margin: 0; color: var(--brand-muted); }
+.how-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 30px; text-align: left; }
+.how-steps article { min-height: 180px; padding: 23px; border: 1px solid var(--brand-border); border-radius: 18px; background: var(--brand-surface); }
+.how-step-number { display: inline-flex; min-width: 38px; height: 34px; align-items: center; justify-content: center; border-radius: 99px; color: var(--brand-copper-dark); background: #F8E8D9; font-size: 12px; font-weight: 900; }
+.how-steps h3 { margin: 17px 0 7px; font-family: "Manrope", sans-serif; font-size: 17px; }
+.how-steps p { margin: 0; color: var(--brand-muted); font-size: 13px; line-height: 1.65; }
+.how-link { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; color: var(--brand-copper-dark); font-size: 14px; font-weight: 800; }
+.about-section { border-color: var(--brand-border); border-radius: 22px; background: #F7EBDD; box-shadow: none; }
+.about-icon { border-color: #E8D2BC; color: var(--brand-copper-dark); background: #FFF8EE; }
+.about-link { color: var(--brand-copper-dark); }
+.footer { border-color: var(--brand-border); background: var(--brand-vanilla); }
+.footer .brand-icon { color: #fff; background: var(--brand-copper); }
+.footer > span { color: var(--brand-muted); }
+.route-loading { min-height: 100vh; display: grid; place-items: center; padding: 24px; color: var(--brand-espresso); background: var(--brand-vanilla); font-weight: 700; }
+
+/* Keep setup forms aligned with the shared warm palette. Game-specific play surfaces remain scoped. */
+.setup-page { color: var(--brand-espresso); }
+.back-link { color: var(--brand-muted); }
+.back-link:hover { color: var(--brand-copper-dark); }
+.setup-card { border-color: var(--brand-border); border-radius: 24px; background: var(--brand-surface); box-shadow: var(--brand-shadow); }
+.setup-label, .player-heading h2 svg { color: var(--brand-copper-dark); }
+.setup-header > p, .selected-game p, .player-heading p { color: var(--brand-muted); }
+.player-total { color: var(--brand-copper-dark); background: #F8E8D9; }
+.add-player-form input:focus { border-color: var(--brand-copper); box-shadow: 0 0 0 3px #B86E4B20; }
+.add-player-button { color: var(--brand-copper-dark); background: #F8E8D9; }
+.add-player-button:hover { background: #F2DCC7; }
+.player-row { border-color: var(--brand-border); }
+.player-avatar { border-color: #F0DFCC; box-shadow: 0 6px 18px rgba(67,43,31,.1); background: #F4E6D8; }
+.empty-state-row { color: var(--brand-muted); background: #FBF5EC; }
+.start-game-button { background: var(--brand-copper); }
+.start-game-button:hover { background: var(--brand-copper-dark); }
+.setup-note { color: var(--brand-muted); }
+.share-results-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+.share-results-status { min-height: 1em; color: var(--brand-muted); font-size: 11px; }
+
+.nav-menu-toggle { display: none; width: 42px; height: 42px; place-items: center; border: 1px solid var(--brand-border); border-radius: 12px; color: var(--brand-espresso); background: var(--brand-surface); cursor: pointer; }
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr .9fr; min-height: 500px; gap: 20px; }
+  .hero-visual { min-height: 370px; }
+  .hero-art-main { width: min(68%, 260px); }
+  .hero-art-small { width: min(42%, 155px); }
+  .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .game-card, .game-card:has(+ .game-card:last-child):nth-child(4) { grid-column: auto; }
+  .how-section { margin: 52px auto; }
+}
+@media (max-width: 650px) {
+  .navbar { min-height: 70px; padding: 13px 18px; }
+  .nav-menu-toggle { display: grid; margin-left: auto; }
+  .nav-cta { order: 2; }
+  .nav-links { position: absolute; z-index: 10; top: calc(100% - 2px); left: 16px; right: 16px; display: none; flex-direction: column; align-items: stretch; gap: 4px; padding: 10px; border: 1px solid var(--brand-border); border-radius: 16px; background: var(--brand-surface); box-shadow: var(--brand-shadow); }
+  .nav-links.is-open { display: flex; }
+  .nav-links a { min-height: 44px; padding: 0 10px; border-radius: 10px; }
+  .nav-links a:hover { background: #F8E8D9; }
+  .hero { grid-template-columns: 1fr; min-height: 0; padding: 38px 20px 22px; }
+  .hero h1 { font-size: clamp(43px, 11vw, 60px); }
+  .hero-visual { min-height: 330px; width: min(100%, 500px); margin: 2px auto 0; }
+  .hero-art-main { width: min(60%, 230px); top: 28px; }
+  .hero-art-small { width: min(38%, 145px); }
+  .hero-art-mafia { top: 78px; left: 3%; }
+  .hero-art-quiz { bottom: 20px; right: 2%; }
+  .hero-note { top: 12px; right: 0; font-size: 10px; }
+  .games-section { padding: 52px 18px; }
+  .section-heading { align-items: flex-start; flex-wrap: wrap; }
+  .surprise-button { min-height: 42px; }
+  .game-filters { flex-wrap: nowrap; overflow-x: auto; margin-right: -18px; padding: 2px 18px 8px 2px; scrollbar-width: thin; }
+  .game-filter { flex: 0 0 auto; }
+  .game-count { flex: 0 0 auto; }
+  .games-grid { grid-template-columns: 1fr; }
+  .game-art { min-height: 175px; }
+  .how-section { margin: 46px auto; padding: 0 18px; }
+  .how-steps { grid-template-columns: 1fr; gap: 11px; }
+  .how-steps article { min-height: auto; }
+  .share-results-wrap { width: 100%; }
+  .share-results-wrap > button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* Final palette overrides for Online Mafia (kept scoped to this mode). */
+.online-mafia-page { --online-mafia-tan: #D6B99B; --online-mafia-beige: #FFF8EE; --online-mafia-terracotta: #B86E4B; --online-mafia-espresso: #30251F; --online-mafia-cream: #FFFCF7; color: var(--brand-espresso); background: var(--brand-vanilla); }
+.online-mafia-page > .back-link { color: var(--brand-copper-dark); }
+.online-mafia-heading, .online-mafia-heading h1 { color: var(--brand-espresso); }
+.online-mafia-heading p { color: var(--brand-muted); }
+.online-mafia-heading .section-kicker, .online-mafia-page .section-kicker { color: var(--brand-copper-dark); }
+.online-mafia-mark { background: var(--brand-copper); }
+.online-mafia-card { border-color: var(--brand-border); color: var(--brand-espresso); background: #F5E6D3; box-shadow: var(--brand-shadow); }
+.online-mafia-card :is(h2, h3, p, label) { color: var(--brand-espresso); }
+.online-mafia-entry-form input, .online-mafia-action-box select { border-color: var(--brand-border); color: var(--brand-espresso); background: var(--brand-surface); }
+.online-mafia-entry-form input:focus, .online-mafia-action-box select:focus { outline-color: #B86E4B35; border-color: var(--brand-copper); }
+.online-mafia-entry-form .mafia-primary-button, .online-mafia-action-box .mafia-primary-button, .online-mafia-actions .mafia-primary-button { border-color: var(--brand-copper); color: #fff; background: var(--brand-copper); }
+.online-mafia-entry-form .mafia-primary-button:hover, .online-mafia-action-box .mafia-primary-button:hover, .online-mafia-actions .mafia-primary-button:hover { background: var(--brand-copper-dark); }
+.online-mafia-entry-form .mafia-secondary-button, .online-mafia-actions .mafia-secondary-button { border-color: var(--brand-espresso); background: var(--brand-espresso); }
+.online-mafia-choice { border-color: var(--brand-border); color: var(--brand-espresso); background: var(--brand-surface); }
+.online-mafia-choice-icon, .online-mafia-choice.create .online-mafia-choice-icon { color: #fff; background: var(--brand-copper); }
+.online-mafia-choice.join .online-mafia-choice-icon { color: var(--brand-espresso); background: var(--brand-tan); }
+.online-mafia-entry-link { border-color: var(--brand-border); color: var(--brand-copper-dark); background: var(--brand-surface); }
+.online-mafia-entry-link:hover { background: #F8E8D9; }
+.online-mafia-icon-button, .online-mafia-reveal { border-color: var(--brand-copper); color: #fff; background: var(--brand-copper); }
+.online-mafia-icon-button:hover, .online-mafia-reveal:hover { background: var(--brand-copper-dark); }
+.online-mafia-phase, .online-mafia-round h2 svg { color: var(--brand-copper-dark); }
+.online-mafia-player { border-color: var(--brand-border); background: var(--brand-surface); }
+.online-mafia-avatar, .online-mafia-player:nth-child(6n + 4) .online-mafia-avatar { color: #fff; background: var(--brand-espresso); }
+.online-mafia-player:nth-child(6n + 2) .online-mafia-avatar { color: var(--brand-espresso); background: var(--brand-tan); }
+.online-mafia-player:nth-child(6n + 3) .online-mafia-avatar { color: #fff; background: var(--brand-copper); }
+.online-mafia-player:nth-child(6n + 5) .online-mafia-avatar { color: var(--brand-espresso); background: var(--brand-blush); }
+.online-mafia-player:nth-child(6n) .online-mafia-avatar { color: #fff; background: var(--brand-copper-dark); }
+.online-mafia-player > span:nth-child(2), .online-mafia-card .online-mafia-round h2, .online-mafia-action-box h3 { color: var(--brand-espresso); }
+.online-mafia-player small { color: var(--brand-copper-dark); background: #F8E8D9; }
+.online-mafia-player b { color: var(--brand-copper-dark); }
+.online-mafia-player b.ready, .online-connection { color: #526947; }
+.online-connection.reconnecting { color: var(--brand-copper-dark); }
+.online-mafia-wait, .online-mafia-progress, .online-mafia-final-roles { border-color: var(--brand-border); color: var(--brand-espresso); background: var(--brand-cream); }
+.online-mafia-private { border-color: #9CAF88; color: #43583B; background: #EEF1E9; }
+.online-mafia-private .section-kicker { color: #43583B; }
+.online-mafia-error { border-color: var(--brand-copper); color: var(--brand-espresso); background: #F7E2D7; }
+.online-mafia-error a, .online-mafia-local-option a { color: var(--brand-copper-dark); }
+.online-mafia-page :is(button, a, input, select):focus-visible { outline-color: var(--brand-copper); }
+body:has(.online-mafia-page) .navbar .brand { color: var(--brand-espresso); }
+body:has(.online-mafia-page) .navbar .brand-icon, body:has(.online-mafia-page) .navbar .nav-cta { color: #fff; background: var(--brand-copper); }
+body:has(.online-mafia-page) .navbar .nav-links a { color: var(--brand-muted); }
+body:has(.online-mafia-page) .navbar .nav-links a:hover, body:has(.online-mafia-page) .navbar .nav-links a.active { color: var(--brand-copper-dark); }
+body:has(.online-mafia-page) .navbar .nav-cta:hover { background: var(--brand-copper-dark); }

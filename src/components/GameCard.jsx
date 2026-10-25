@@ -1,24 +1,20 @@
 
 import { ArrowUpRight, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getGamePath } from "../lib/gameDiscovery.js";
 
 export default function GameCard({ game }) {
   return (
     <article className="game-card">
-      <div className={`game-art ${game.color}`}>
-        {game.image ? (
-          <img
-            className="game-illustration"
-            src={game.image}
-            alt={game.title}
-          />
-        ) : (
-          <span className="game-emoji" aria-label={game.title}>
-            {game.icon}
-          </span>
-        )}
-        <span className="game-category">{game.category}</span>
-      </div>
+      <Link to={getGamePath(game)} className="game-card-link" aria-label={`Set up ${game.title}`}>
+        <div className={`game-art ${game.color}`}>
+          {game.image ? (
+            <img className="game-illustration" src={game.image} alt="" loading="lazy" decoding="async" />
+          ) : (
+            <span className="game-emoji" aria-hidden="true">{game.icon}</span>
+          )}
+          <span className="game-category">{game.category}</span>
+        </div>
 
       <div className="game-info">
         <h3>{game.title}</h3>
@@ -30,15 +26,10 @@ export default function GameCard({ game }) {
             {game.players}
           </span>
 
-          <Link
-            to={game.id === "mafia" ? "/play/mafia/online" : `/game/${game.id}`}
-            className="play-link"
-            aria-label={`Play ${game.title}`}
-          >
-            <ArrowUpRight size={19} />
-          </Link>
+          <span className="play-link" aria-hidden="true"><ArrowUpRight size={19} /></span>
         </div>
       </div>
+      </Link>
     </article>
   );
 }

@@ -11,21 +11,20 @@ import {
 } from "lucide-react";
 import {
   createImposterRound,
-  getCategories,
   getVoteResult,
   addImposterVote,
 } from "./logic.js";
 import { getPlayerColor } from "../../utils/playerSetup.js";
 import lockImage from "./lock.png";
 import discussionImage from "./dicussion.png";
+import ShareResultsButton from "../../components/ShareResultsButton.jsx";
+import { imposterResultSummary } from "../../lib/resultSummary.js";
 
 export default function ImposterGame() {
   const location = useLocation();
   const navigate = useNavigate();
   const players = location.state?.players || [];
-  const [selectedCategory, setSelectedCategory] = useState(
-    location.state?.category || "Mixed"
-  );
+  const selectedCategory = location.state?.category || "Mixed";
 
   const [round, setRound] = useState(() => {
     if (players.length < 3) return null;
@@ -137,12 +136,6 @@ export default function ImposterGame() {
     setVoteTarget("");
     setVoterIndex(0);
     setPhase("voting");
-  }
-
-  function handleCategoryChange(event) {
-    const nextCategory = event.target.value;
-    setSelectedCategory(nextCategory);
-    restartRound(nextCategory);
   }
 
   function resetTimer() {
@@ -441,6 +434,8 @@ export default function ImposterGame() {
                 {Object.entries(result.counts || {}).sort((a, b) => b[1] - a[1]).map(([player, count]) => <div key={player} style={{ "--player-color": getPlayerColor(players.indexOf(player)).background, "--player-foreground": getPlayerColor(players.indexOf(player)).foreground }}><span>{player}</span><strong>{count} {count === 1 ? "vote" : "votes"}</strong></div>)}
               </div>
             </div>
+
+            <ShareResultsButton className="secondary-button full-button" summary={imposterResultSummary(result, Object.keys(votes).length)} />
 
             <button
               type="button"

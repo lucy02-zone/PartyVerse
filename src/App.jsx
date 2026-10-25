@@ -1,19 +1,21 @@
 
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home.jsx";
-import RoomSetup from "./pages/RoomSetup.jsx";
-import ImposterGame from "./games/imposter/ImposterGame.jsx";
-import MafiaGame from "./games/mafia/MafiaGame.jsx";
-import MafiaNight from "./games/mafia/MafiaNight.jsx";
-import MafiaDay from "./games/mafia/MafiaDay.jsx";
-import OnlineMafia from "./games/mafia/OnlineMafia.jsx";
-import UndercoverGame from "./games/undercover/UndercoverGame.jsx";
-import QuizGame from "./games/quiz/QuizGame.jsx";
-import CharadesGame from "./games/charades/CharadesGame.jsx";
+const RoomSetup = lazy(() => import("./pages/RoomSetup.jsx"));
+const ImposterGame = lazy(() => import("./games/imposter/ImposterGame.jsx"));
+const MafiaGame = lazy(() => import("./games/mafia/MafiaGame.jsx"));
+const MafiaNight = lazy(() => import("./games/mafia/MafiaNight.jsx"));
+const MafiaDay = lazy(() => import("./games/mafia/MafiaDay.jsx"));
+const OnlineMafia = lazy(() => import("./games/mafia/OnlineMafia.jsx"));
+const UndercoverGame = lazy(() => import("./games/undercover/UndercoverGame.jsx"));
+const QuizGame = lazy(() => import("./games/quiz/QuizGame.jsx"));
+const CharadesGame = lazy(() => import("./games/charades/CharadesGame.jsx"));
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<main className="route-loading" role="status" aria-live="polite">Getting the game ready…</main>}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/game/:gameId" element={<RoomSetup />} />
@@ -27,6 +29,7 @@ export default function App() {
         <Route path="/play/charades" element={<CharadesGame />} />
         <Route path="*" element={<Home />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

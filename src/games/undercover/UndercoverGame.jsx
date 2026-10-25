@@ -5,12 +5,13 @@ import {
   Clock3,
   Eye,
   EyeOff,
-  ShieldCheck,
   Vote,
   RotateCcw,
 } from "lucide-react";
-import { createUndercoverRound, getRoundWinner, getVoteResult } from "./logic.js";
+import { createUndercoverRound, getVoteResult } from "./logic.js";
 import { getPlayerColor } from "../../utils/playerSetup.js";
+import ShareResultsButton from "../../components/ShareResultsButton.jsx";
+import { undercoverResultSummary } from "../../lib/resultSummary.js";
 
 export default function UndercoverGame() {
   const location = useLocation();
@@ -67,8 +68,6 @@ export default function UndercoverGame() {
   }
 
   const currentPlayer = round.assignments[currentIndex];
-  const alivePlayers = round.assignments.filter((player) => player.alive);
-
   function hideAndContinue() {
     setRevealed(false);
 
@@ -360,6 +359,7 @@ export default function UndercoverGame() {
                 <RotateCcw size={17} />
                 Play again
               </button>
+              <ShareResultsButton className="secondary-button full-button" summary={undercoverResultSummary(result)} />
             </div>
           </>
         )}

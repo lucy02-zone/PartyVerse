@@ -7,10 +7,11 @@ import {
   RotateCcw,
   Trophy,
   Users,
-  Vote,
 } from "lucide-react";
 import { applyPlayerAnswer, buildQuizGame, getAccuracy, getLeaderboard, getWinnerNames } from "./logic.js";
 import { getPlayerColor } from "../../utils/playerSetup.js";
+import ShareResultsButton from "../../components/ShareResultsButton.jsx";
+import { quizResultSummary } from "../../lib/resultSummary.js";
 
 export default function QuizGame() {
   const location = useLocation();
@@ -281,6 +282,7 @@ export default function QuizGame() {
               ))}
 
               <div className="results-actions">
+                <ShareResultsButton summary={quizResultSummary(winners, leaderboard)} />
                 <button type="button" className="primary-button" onClick={restartGame}>
                   <RotateCcw size={18} />
                   Play Again
