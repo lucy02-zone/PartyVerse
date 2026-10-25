@@ -2967,9 +2967,33 @@ body:has(.online-mafia-page) .navbar .nav-cta:hover { background: #8F4F38; }
 .online-mafia-page, .online-mafia-card, .online-mafia-live, .online-mafia-phase, .online-mafia-action-box { min-width: 0; }
 .online-mafia-page { overflow-x: clip; }
 .online-mafia-action-box select { max-width: 100%; }
+.online-mafia-target-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px; min-width: 0; }
+.online-mafia-target { display: flex; align-items: center; gap: 11px; min-width: 0; min-height: 58px; padding: 9px 12px; border: 1px solid #B99A75; border-radius: 13px; color: var(--online-mafia-espresso); background: var(--online-mafia-cream); cursor: pointer; text-align: left; font: inherit; }
+.online-mafia-target:hover:not(:disabled) { border-color: var(--online-mafia-terracotta); }
+.online-mafia-target.selected { border: 2px solid var(--online-mafia-terracotta); background: #F4DDD1; box-shadow: inset 0 0 0 1px #A65E4220; }
+.online-mafia-target-name { min-width: 0; overflow-wrap: anywhere; font-weight: 750; }
+.online-mafia-target-state { margin-left: auto; color: #60483E; font-size: .82rem; font-weight: 700; }
+.online-mafia-target.selected .online-mafia-target-state { color: #80452F; }
+.online-mafia-target.eliminated { border-color: #D8D0C6; color: #726A63; background: #EAE3DA; cursor: not-allowed; }
+.online-mafia-target.eliminated .online-mafia-avatar { color: #625A53; background: #D8D0C6; }
+.online-mafia-player.eliminated { border-style: dashed; background: #EEE8DF; }
+.online-mafia-player b.eliminated { color: #73685F; }
+.online-mafia-no-targets { grid-column: 1 / -1; margin: 0; color: #60483E; }
+.online-mafia-vote-timer { display: grid; gap: 11px; margin: 24px 0 4px; padding: 15px 17px; border: 1px solid #B99A75; border-radius: 14px; color: var(--online-mafia-espresso); background: var(--online-mafia-cream); }
+.online-mafia-vote-timer-copy { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.online-mafia-vote-timer-copy .section-kicker { color: #704532; }
+.online-mafia-vote-timer-copy strong { font-variant-numeric: tabular-nums; }
+.online-mafia-vote-progress { height: 8px; overflow: hidden; border-radius: 999px; background: #E8D8C4; }
+.online-mafia-vote-progress span { display: block; width: 100%; height: 100%; transform-origin: left center; border-radius: inherit; background: var(--online-mafia-sage); transition: transform .2s linear, background-color .2s ease; }
+.online-mafia-vote-timer.urgent .online-mafia-vote-progress span { background: var(--online-mafia-terracotta); }
+.online-mafia-vote-timer.urgent { border-color: var(--online-mafia-terracotta); }
+.online-mafia-remove { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 42px !important; padding: 7px 9px; border: 1px solid var(--online-mafia-terracotta); border-radius: 10px; color: #80452F; background: var(--online-mafia-cream); cursor: pointer; font: inherit; font-size: .78rem; font-weight: 750; }
+.online-mafia-remove:hover:not(:disabled) { color: var(--online-mafia-cream); background: var(--online-mafia-terracotta); }
+.online-mafia-remove:disabled { opacity: .55; cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   .online-mafia-choice { transition: none; }
   .online-mafia-choice:hover { transform: none; }
+  .online-mafia-vote-progress span { transition: none; }
 }
 
 /* Charades viewport reflow and prompt color states */
@@ -3211,6 +3235,9 @@ body:has(.online-mafia-page) .navbar .nav-cta:hover { background: #8F4F38; }
   .online-mafia-room-code strong { font-size: 1.2rem; }
   .online-mafia-player { gap: 8px; padding-inline: 8px; }
   .online-mafia-player b { font-size: .72rem; }
+  .online-mafia-remove { padding-inline: 7px; }
+  .online-mafia-remove span { display: none; }
+  .online-mafia-target { gap: 8px; padding-inline: 9px; }
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .charades-setup { max-width: 1000px; padding-top: 18px; padding-bottom: 32px; }

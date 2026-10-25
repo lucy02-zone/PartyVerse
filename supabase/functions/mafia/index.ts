@@ -36,7 +36,7 @@ Deno.serve(async (request: Request) => {
     } catch {
       return respond({ error: "Request body must be valid JSON." }, 400);
     }
-    const allowedCommands = new Set(["create", "join", "state", "ready", "start", "night_action", "vote"]);
+    const allowedCommands = new Set(["create", "join", "state", "ready", "start", "night_action", "vote", "remove_player"]);
     if (!body || typeof body.command !== "string" || !allowedCommands.has(body.command)) {
       return respond({ error: "Unsupported Mafia command." }, 400);
     }
@@ -45,6 +45,34 @@ Deno.serve(async (request: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
+    let roomId = typeof payload.roomId === "string" ? payload.roomId : "";
+    if (!roomId && body.command === "join" && typeof payload.roomCode === "string") {
+      const { data: room } = await admin.from("mafia_rooms").select("id").eq("code", payload.roomCode.toUpperCase()).maybeSingle();
+      roomId = room?.id ?? "";
+    }
+    if (roomId) {
+      const { data: ban, error: banError } = await admin
+        .from("mafia_room_bans")
+        .select("room_id")
+        .eq("room_id", roomId)
+        .eq("user_id", authData.user.id)
+        .maybeSingle();
+      if (banError) return respond({ error: "Online Mafia is not ready for this room yet. Please retry shortly." }, 503);
+      if (ban) return respond({ error: "The host removed you from this room." }, 403);
+
+      const { data: membership, error: membershipError } = await admin
+        .from("mafia_room_memberships")
+        .select("player_id")
+        .eq("room_id", roomId)
+        .eq("user_id", authData.user.id)
+        .maybeSingle();
+      if (membershipError) return respond({ error: "That Mafia action could not be completed. Refresh the room and try again." }, 409);
+      if (membership) {
+        const { error: timeoutError } = await admin.rpc("mafia_resolve_vote_timeout", { p_room_id: roomId });
+        if (timeoutError) return respond({ error: "That Mafia action could not be completed. Refresh the room and try again." }, 409);
+      }
+    }
+
     if (body.command === "create") {
       if (typeof payload.playerName !== "string") return respond({ error: "Enter your player name." }, 400);
       if (typeof payload.roomName !== "string") return respond({ error: "Enter a room name." }, 400);
@@ -52,7 +80,6 @@ Deno.serve(async (request: Request) => {
     }
 
     if (body.command === "start") {
-      const roomId = typeof payload.roomId === "string" ? payload.roomId : "";
       if (!roomId) return respond({ error: "Room details are missing. Refresh the lobby." }, 400);
       const { data: membership, error: membershipError } = await admin
         .from("mafia_room_memberships")
@@ -74,16 +101,36 @@ Deno.serve(async (request: Request) => {
       }
     }
 
-    const { data, error } = await admin.rpc("mafia_command", {
-      p_actor_user_id: authData.user.id,
-      p_command: body.command,
-      p_payload: payload,
-    });
+    const isRemoval = body.command === "remove_player";
+    if (isRemoval && (!roomId || typeof payload.targetPlayerId !== "string")) {
+      return respond({ error: "Choose a player in this room to remove." }, 400);
+    }
+    const { data, error } = isRemoval
+      ? await admin.rpc("mafia_remove_player", {
+        p_actor_user_id: authData.user.id,
+        p_room_id: roomId,
+        p_target_player_id: payload.targetPlayerId,
+      })
+      : await admin.rpc("mafia_command", {
+        p_actor_user_id: authData.user.id,
+        p_command: body.command,
+        p_payload: payload,
+      });
     if (error) {
       const message = error.message || "That Mafia action could not be completed.";
-      const expectedClientError = /Room not found|Check the code|Enter a name|already|needs 5|full|ready|cannot|living|closed|started|invalid|Only the host|has already|unsupported|Mafia cannot|Your role|state changed|refresh/i.test(message);
+      const expectedClientError = /Room not found|Check the code|Enter a name|already|needs 5|full|ready|cannot|living|closed|started|starts|invalid|Only the (room )?host|has already|unsupported|Mafia cannot|Your role|state changed|refresh|removed|Voting time is up|Choose a player/i.test(message);
       return respond({ error: expectedClientError ? message : "That Mafia action could not be completed. Refresh the room and try again." }, expectedClientError ? 400 : 409);
     }
+    if (data?.room?.id) {
+      const { data: room, error: roomError } = await admin
+        .from("mafia_rooms")
+        .select("vote_deadline")
+        .eq("id", data.room.id)
+        .maybeSingle();
+      if (roomError) return respond({ error: "Room state could not be refreshed. Please retry." }, 503);
+      data.room.votingDeadline = room?.vote_deadline ?? null;
+    }
+    if (data && typeof data === "object") data.serverTime = new Date().toISOString();
     return respond(data);
   } catch {
     return respond({ error: "Online Mafia could not complete that request. Please try again." }, 500);

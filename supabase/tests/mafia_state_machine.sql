@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(26);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_anonymous)
 values
@@ -23,7 +23,8 @@ declare
     '10000000-0000-4000-8000-000000000003'::uuid,
     '10000000-0000-4000-8000-000000000004'::uuid,
     '10000000-0000-4000-8000-000000000005'::uuid,
-    '10000000-0000-4000-8000-000000000006'::uuid
+    '10000000-0000-4000-8000-000000000006'::uuid,
+    '10000000-0000-4000-8000-000000000007'::uuid
   ];
   ids uuid[];
   room_id uuid;
@@ -152,6 +153,25 @@ begin
   perform public.mafia_command(u[1], 'vote', jsonb_build_object('roomId',room_id,'targetPlayerId',ids[2],'expectedPhase','day','expectedRoundNumber',1));
   state := public.mafia_command(u[2], 'vote', jsonb_build_object('roomId',room_id,'targetPlayerId',ids[1],'expectedPhase','day','expectedRoundNumber',1));
   perform ok(state #>> '{room,winner}' = 'Mafia' and state #>> '{room,phase}' = 'ended', 'Mafia wins when it reaches parity with the town');
+
+  state := public.mafia_command(u[1], 'create', '{"roomCode":"MATE77","roomName":"Mafia Team Test","playerName":"Host"}');
+  room_id := (state #>> '{room,id}')::uuid;
+  ids := array[(state->>'myPlayerId')::uuid];
+  for i in 2..7 loop
+    state := public.mafia_command(u[i], 'join', jsonb_build_object('roomCode','MATE77','playerName','Teammate Test '||i));
+    ids := array_append(ids, (state->>'myPlayerId')::uuid);
+    perform public.mafia_command(u[i], 'ready', jsonb_build_object('roomId',room_id,'ready',true));
+  end loop;
+  role_set := jsonb_build_array(
+    jsonb_build_object('playerId',ids[1],'role','Mafia'), jsonb_build_object('playerId',ids[2],'role','Mafia'),
+    jsonb_build_object('playerId',ids[3],'role','Doctor'), jsonb_build_object('playerId',ids[4],'role','Detective'),
+    jsonb_build_object('playerId',ids[5],'role','Villager'), jsonb_build_object('playerId',ids[6],'role','Villager'),
+    jsonb_build_object('playerId',ids[7],'role','Villager'));
+  perform public.mafia_command(u[1], 'start', jsonb_build_object('roomId',room_id,'roles',role_set));
+  perform throws_ok(
+    format('select public.mafia_command(%L::uuid,''night_action'',%L::jsonb)', u[1], jsonb_build_object('roomId',room_id,'targetPlayerId',ids[2],'expectedPhase','night','expectedRoundNumber',1)::text),
+    'P0001', 'The Mafia cannot target a teammate.', 'rejects Mafia targeting a teammate'
+  );
 end;
 $test$;
 
