@@ -2772,6 +2772,7 @@ button:disabled {
 .charades-stepper button + button { border-left: 1px solid #3a0f3418; }
 .charades-stepper button span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #716a7c; background: #eae6f0; font-size: .82rem; }
 .charades-stepper button.is-active { color: #3a0f34; background: #f0eaff; }
+.charades-stepper button:disabled { opacity: .5; cursor: not-allowed; }
 .charades-stepper button.is-active span,.charades-stepper button.is-complete span { color: #fff; background: #704de5; }
 .charades-step-content { min-width: 0; }
 .charades-rules > header h2,.charades-review h2 { margin: 6px 0; color: #231d31; font-size: clamp(1.55rem, 3vw, 2rem); }
@@ -2798,11 +2799,26 @@ button:disabled {
 .charades-step-actions .start-game-button { flex: 1; }
 .charades-step-actions .start-game-button:disabled { opacity: .5; cursor: not-allowed; }
 .charades-stepper button:focus-visible,.charades-choice-grid button:focus-visible,.charades-lobby-hero-copy button:focus-visible,.charades-back-step:focus-visible { outline: 3px solid #704de5; outline-offset: 2px; }
+.charades-setup .player-row { min-width: 0; }
+.charades-setup .player-name-button { min-height: 42px; padding-inline: 4px; border-radius: 8px; }
+.charades-setup .player-name-button::after { content: "Edit"; margin-left: 10px; color: #817993; font-size: .75rem; font-weight: 650; opacity: 0; transition: opacity 120ms ease; }
+.charades-setup .player-name-button:hover::after,.charades-setup .player-name-button:focus-visible::after { opacity: 1; }
+.charades-setup .player-edit-fields { display: flex; flex: 1; align-items: center; flex-wrap: wrap; gap: 7px; min-width: 0; }
+.setup-page:not(.charades-setup) .player-edit-fields { display: contents; }
+.charades-setup .player-edit-fields .player-name-input { flex: 1 1 160px; min-width: 100px; }
+.charades-setup .player-edit-save,.charades-setup .player-edit-cancel { min-height: 40px; padding: 0 11px; border: 1px solid #dcd6e2; border-radius: 9px; color: #4b1d45; background: #fff; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.charades-setup .player-edit-save { border-color: #3a0f34; color: #fff; background: #3a0f34; }
+.charades-setup .player-edit-save:focus-visible,.charades-setup .player-edit-cancel:focus-visible { outline: 3px solid #704de5; outline-offset: 2px; }
+.charades-leader-row.is-winner { border-color: #D08B68; background: #D08B6818; }
+.charades-leader-row.is-winner .charades-leader-name { color: #3A0F34; font-weight: 850; }
 @media (max-width: 600px) {
   .charades-lobby-hero { grid-template-columns: minmax(0, 1fr); text-align: center; }
   .charades-lobby-hero > img { width: min(58vw, 210px); }
   .charades-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .charades-stepper button { gap: 6px; font-size: .86rem; }
+  .charades-setup .player-row { align-items: flex-start; }
+  .charades-setup .player-edit-fields { flex-basis: 100%; }
+  .charades-setup .player-number { align-self: center; }
 }
 @media (orientation: landscape) and (max-height: 560px) {
   .charades-setup { max-width: 1000px; padding-top: 18px; padding-bottom: 32px; }

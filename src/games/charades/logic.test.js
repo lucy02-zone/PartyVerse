@@ -1,15 +1,40 @@
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import CharadesGame from "./CharadesGame.jsx";
-import { buildCharadesGame, createMatchState, getTiltAction, getTurnDetails, getWinningTeams, matchReducer } from "./logic.js";
+import RoomSetup from "../../pages/RoomSetup.jsx";
+import { buildCharadesGame, createDefaultPlayers, createMatchState, getLeaderboard, getTiltAction, getTurnDetails, getWinningTeams, matchReducer, removePlayerFromRoster } from "./logic.js";
 import { CHARADES_PROMPTS, getPromptDeck } from "./prompts.js";
 
 const game = (overrides = {}) => buildCharadesGame({ players: ["A", "B", "C"], roundCount: 2, ...overrides });
 const started = (g = game()) => matchReducer(createMatchState(g, () => 0), { type: "START" });
 
 describe("Telugu Charades", () => {
+  it("opens setup with two normal editable default players and accepts them unchanged", () => {
+    const roster = createDefaultPlayers();
+    expect(roster).toEqual(["Player 1", "Player 2"]);
+    expect(buildCharadesGame({ players: roster }).players).toEqual(roster);
+    const markup = renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: ["/game/charades"] }, createElement(Routes, null, createElement(Route, { path: "/game/:gameId", element: createElement(RoomSetup) }))));
+    expect(markup).toContain("Player 1");
+    expect(markup).toContain("Player 2");
+  });
+  it("enforces the two-player floor while allowing extra players to be removed", () => {
+    expect(() => buildCharadesGame({ players: ["Only one"] })).toThrow(/2 to 16/);
+    expect(removePlayerFromRoster(["Player 1", "Player 2"], 0)).toEqual(["Player 1", "Player 2"]);
+    expect(removePlayerFromRoster(["A", "B", "C"], 1)).toEqual(["A", "C"]);
+  });
+  it("persists edited names through game creation and replay configuration", () => {
+    const edited = createDefaultPlayers().map((name, index) => index === 0 ? "Rina" : name);
+    const g = buildCharadesGame({ players: edited, roundCount: 2, turnDuration: 45, era: [2010, 2019] });
+    const replay = matchReducer(createMatchState(g, () => 0), { type: "RESTART", game: g });
+    expect(g.players).toEqual(["Rina", "Player 2"]);
+    expect(replay.game.players).toEqual(g.players);
+    expect(replay.game.roundCount).toBe(2);
+    expect(replay.game.turnDuration).toBe(45);
+    expect(replay.game.era).toEqual([2010, 2019]);
+    expect(replay.teams.every((team) => team.score === 0)).toBe(true);
+  });
   it("uses unique Telugu movie prompts and respects filters", () => {
     expect(CHARADES_PROMPTS.length).toBeGreaterThanOrEqual(150);
     expect(new Set(CHARADES_PROMPTS.map((x) => x.prompt)).size).toBe(CHARADES_PROMPTS.length);
@@ -79,6 +104,47 @@ describe("Telugu Charades", () => {
     expect(ended.turnIndex).toBe(1);
     expect(getTurnDetails(ended.game, ended.turnIndex, ended.teams).actingPlayer).toBe("B");
     expect(ended.timeLeft).toBe(ended.game.turnDuration);
+  });
+  it("schedules each player once per round and ends on the final scheduled turn", () => {
+    const g = game({ players: ["A", "B", "C"], roundCount: 2 });
+    const schedule = Array.from({ length: g.totalTurns }, (_, index) => getTurnDetails(g, index).actingPlayer);
+    expect(schedule).toEqual(["A", "B", "C", "A", "B", "C"]);
+    let s = createMatchState(g, () => 0);
+    for (let turn = 0; turn < g.totalTurns; turn++) {
+      s = matchReducer(s, { type: "START" });
+      s = matchReducer(s, { type: "END_TURN", reason: "ended" });
+    }
+    expect(s.phase).toBe("results");
+    expect(s.turnIndex).toBe(g.totalTurns - 1);
+    expect(s.teams.map((team) => team.turnsPlayed)).toEqual([2, 2, 2]);
+    expect(matchReducer(s, { type: "END_TURN" })).toBe(s);
+    expect(matchReducer(s, { type: "TICK" })).toBe(s);
+  });
+  it("keeps correct and skipped prompts in the current player's turn", () => {
+    let s = started();
+    s = matchReducer(s, { type: "ANSWER", correct: true });
+    expect(s.turnIndex).toBe(0);
+    s = matchReducer(s, { type: "NEXT_PROMPT" });
+    s = matchReducer(s, { type: "ANSWER", correct: false });
+    expect(s.turnIndex).toBe(0);
+    expect(s.teams[0].correctAnswers).toBe(1);
+    expect(s.teams[0].skippedPrompts).toBe(1);
+  });
+  it("advances a timed-out turn exactly once and finishes immediately when it is last", () => {
+    const g = game({ players: ["A", "B"], roundCount: 1 });
+    let s = matchReducer(createMatchState(g, () => 0), { type: "START" });
+    s = { ...s, turnIndex: 1, timeLeft: 1 };
+    s = matchReducer(s, { type: "TICK" });
+    expect(s.phase).toBe("results");
+    expect(s.turnIndex).toBe(1);
+    expect(s.teams[1].turnsPlayed).toBe(1);
+    expect(matchReducer(s, { type: "TICK" })).toBe(s);
+    expect(matchReducer(s, { type: "END_TURN", reason: "timeout" })).toBe(s);
+  });
+  it("sorts the final leaderboard and preserves tied top scores", () => {
+    const ranked = getLeaderboard([{ id: "a", score: 2 }, { id: "b", score: 5 }, { id: "c", score: 5 }]);
+    expect(ranked.map((team) => team.id)).toEqual(["b", "c", "a"]);
+    expect(getWinningTeams(ranked)).toHaveLength(2);
   });
   it("recovers safely when legacy match state has no inventory object", () => {
     const s = started();

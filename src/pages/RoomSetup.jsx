@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Plus,
@@ -10,13 +10,14 @@ import {
 } from "lucide-react";
 import { games } from "../data/games.js";
 import Navbar from "../components/Navbar.jsx";
+import { createDefaultPlayers, removePlayerFromRoster } from "../games/charades/logic.js";
 
 const playerLimits = {
   imposter: { min: 3, max: 12 },
   mafia: { min: 5, max: 15 },
   undercover: { min: 3, max: 12 },
   quiz: { min: 2, max: 10 },
-  charades: { min: 3, max: 16 },
+  charades: { min: 2, max: 16 },
 };
 
 const avatarPalette = [
@@ -57,11 +58,12 @@ function getPlayerAvatar(player, index) {
 export default function RoomSetup() {
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const game = games.find((item) => item.id === gameId);
   const limits = playerLimits[gameId] || { min: 2, max: 10 };
 
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState(() => gameId === "charades" ? createDefaultPlayers(location.state?.players) : []);
   const [newPlayer, setNewPlayer] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingValue, setEditingValue] = useState("");
@@ -72,14 +74,14 @@ export default function RoomSetup() {
     questionCount: 5,
     timeLimit: 15,
   });
-  const [charadesConfig, setCharadesConfig] = useState({
-    era: null,
-    difficulty: "Mixed",
-    roundCount: 3,
-    turnDuration: 60,
-    teamMode: "individual",
-    teamCount: 2,
-  });
+  const [charadesConfig, setCharadesConfig] = useState(() => ({
+    era: location.state?.era || null,
+    difficulty: location.state?.difficulty || "Mixed",
+    roundCount: location.state?.roundCount || 3,
+    turnDuration: location.state?.turnDuration || 60,
+    teamMode: location.state?.teamMode || "individual",
+    teamCount: location.state?.teamCount || 2,
+  }));
   const [imposterConfig, setImposterConfig] = useState({
     category: "Mixed",
   });
@@ -124,9 +126,14 @@ export default function RoomSetup() {
   }
 
   function removePlayer(index) {
-    setPlayers((current) =>
-      current.filter((_, playerIndex) => playerIndex !== index)
-    );
+    if (gameId === "charades" && players.length <= limits.min) {
+      setMessage("Charades needs at least 2 players.");
+      return;
+    }
+    setPlayers((current) => gameId === "charades" ? removePlayerFromRoster(current, index, limits.min) : current.filter((_, playerIndex) => playerIndex !== index));
+    if (gameId === "charades" && charadesConfig.teamMode === "teams") {
+      setCharadesConfig((current) => ({ ...current, teamCount: Math.min(current.teamCount, Math.max(2, Math.min(players.length - 1, 6))) }));
+    }
     setMessage("");
   }
 
@@ -230,8 +237,8 @@ export default function RoomSetup() {
     }
 
     if (gameId === "charades") {
-      if (players.length < 3 || players.length > 16) {
-        setMessage("Charades supports 3 to 16 players.");
+      if (players.length < 2 || players.length > 16) {
+        setMessage("Charades supports 2 to 16 players.");
         return;
       }
 
@@ -290,8 +297,8 @@ export default function RoomSetup() {
 
           <h1>{gameId === "charades" ? "Build your Charades lobby" : "Set up your game"}</h1>
 
-          <p>
-            Gather your friends, add their names, and get ready to play.
+        <p>
+            {gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : "Gather your friends, add their names, and get ready to play."}
           </p>
         </section>
 
@@ -319,7 +326,7 @@ export default function RoomSetup() {
           </div>}
 
           {gameId === "charades" && <nav className="charades-stepper" aria-label="Game setup steps">
-            {["Players", "Rules", "Review"].map((label, index) => <button type="button" key={label} className={charadesStep === index ? "is-active" : charadesStep > index ? "is-complete" : ""} aria-current={charadesStep === index ? "step" : undefined} onClick={() => index <= charadesStep || (index === 1 && players.length >= limits.min) ? setCharadesStep(index) : setMessage(`Add at least ${limits.min} players before choosing the rules.`)}><span>{index + 1}</span>{label}</button>)}
+            {["Players", "Rules", "Review"].map((label, index) => <button type="button" key={label} className={charadesStep === index ? "is-active" : charadesStep > index ? "is-complete" : ""} aria-current={charadesStep === index ? "step" : undefined} disabled={index > charadesStep + 1 || (charadesStep === 0 && index === 1 && players.length < limits.min)} onClick={() => setCharadesStep(index)}><span>{index + 1}</span>{label}</button>)}
           </nav>}
 
           {(gameId !== "charades" || charadesStep === 0) && <div id="charades-players" className="charades-step-content"><div className="player-heading">
@@ -368,15 +375,17 @@ export default function RoomSetup() {
                   />
 
                   {editingIndex === index ? (
+                    <div className="player-edit-fields">
                     <input
                       className="player-name-input"
                       autoFocus
                       type="text"
                       value={editingValue}
                       onChange={(event) => setEditingValue(event.target.value)}
-                      onBlur={saveEditedPlayer}
+                      onBlur={gameId === "charades" ? undefined : saveEditedPlayer}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
+                          event.preventDefault();
                           saveEditedPlayer();
                         }
 
@@ -387,6 +396,8 @@ export default function RoomSetup() {
                       maxLength={30}
                       aria-label={`Rename ${player}`}
                     />
+                    {gameId === "charades" && <><button type="button" className="player-edit-save" onClick={saveEditedPlayer}>Save</button><button type="button" className="player-edit-cancel" onClick={cancelEditingPlayer}>Cancel</button></>}
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -401,7 +412,7 @@ export default function RoomSetup() {
 
                   <span className="player-number">#{index + 1}</span>
 
-                  <button
+                  {(gameId !== "charades" || players.length > limits.min) && <button
                     type="button"
                     className="remove-player-button"
                     onClick={() => removePlayer(index)}
@@ -409,7 +420,7 @@ export default function RoomSetup() {
                     title={`Remove ${player}`}
                   >
                     <Trash2 size={17} />
-                  </button>
+                  </button>}
                 </div>
               ))
             )}

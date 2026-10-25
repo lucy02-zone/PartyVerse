@@ -1,7 +1,7 @@
 import { Component, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock3, Pause, Play, RotateCcw, SkipForward, Trophy, Smartphone, Zap, X } from "lucide-react";
-import { buildCharadesGame, createMatchState, getMatchStats, getTiltAction, getTurnDetails, matchReducer } from "./logic.js";
+import { buildCharadesGame, createMatchState, getLeaderboard, getMatchStats, getTiltAction, getTurnDetails, matchReducer } from "./logic.js";
 
 const MOTION_THRESHOLD = 22;
 const COOLDOWN_MS = 1000;
@@ -159,11 +159,20 @@ function CharadesGameScreen() {
   }
 
   function restart() {
-    try { dispatch({ type: "RESTART", game: buildCharadesGame(config) }); neutralRef.current = null; }
+    try {
+      dispatch({ type: "RESTART", game: buildCharadesGame(config) });
+      neutralRef.current = null;
+      setNeutralBeta(null);
+      setTiltEnabled(false);
+      setPauseOpen(false);
+      setLeaveConfirm(false);
+      setDoublePointsArmedFor(null);
+      window.clearTimeout(sensorTimerRef.current);
+    }
     catch { navigate("/game/charades"); }
   }
 
-  if (!state || !turn) return <main className="charades-page"><section className="charades-panel charades-error"><span className="charades-eyebrow">TELUGU MOVIE CHARADES</span><h1>Unable to start Charades</h1><p>Return to setup and add 3–16 unique players{config.players?.length ? "." : ". No player list was provided."}</p><button className="charades-button charades-button-primary" onClick={() => navigate("/game/charades")}>Back to setup</button></section></main>;
+  if (!state || !turn) return <main className="charades-page"><section className="charades-panel charades-error"><span className="charades-eyebrow">TELUGU MOVIE CHARADES</span><h1>Unable to start Charades</h1><p>Return to setup and add 2–16 unique players{config.players?.length ? "." : ". No player list was provided."}</p><button className="charades-button charades-button-primary" onClick={() => navigate("/game/charades")}>Back to setup</button></section></main>;
 
   const winners = stats.winnerIds.map((id) => state.teams.find((team) => team.id === id));
   const shareSummary = `PartyVerse Telugu Charades · ${winners.length === 1 ? winners[0]?.name + " wins" : winners.map((w) => w.name).join(" & ") + " tie"} · ${state.teams.map((team) => `${team.name} ${team.score}`).join(" | ")} · ${stats.correct} correct, ${stats.skips} skips`;
@@ -198,6 +207,7 @@ function CharadesGameScreen() {
             </div>
             <div className="charades-utility-row">
               <button className="charades-text-button" onClick={openPause}><Pause size={15}/> Pause</button>
+              <button className="charades-text-button" disabled={state.paused || state.transition} onClick={() => dispatch({ type: "END_TURN", reason: "ended" })}>End turn</button>
               <button className="charades-text-button" onClick={() => { if (tiltEnabled) { setTiltEnabled(false); window.clearTimeout(sensorTimerRef.current); neutralRef.current = null; setSensorStatus("Manual controls active"); } else enableTilt(); }}><Smartphone size={15}/> {tiltEnabled ? "Disable tilt" : "Tilt controls"}</button>
               <label className="charades-vibration"><input type="checkbox" checked={vibrationEnabled} onChange={(event) => setVibrationEnabled(event.target.checked)}/> Vibration</label>
             </div>
@@ -216,9 +226,9 @@ function CharadesGameScreen() {
       <div className="charades-result-icon"><Trophy size={27}/></div><span className="charades-eyebrow">MATCH COMPLETE</span>
       <h1>{winners.length === 1 ? `${winners[0].name} wins` : winners.length ? "It’s a tie" : "Game complete"}</h1>
       <p className="charades-results-intro">A round well played. Here are the final scores.</p>
-      <div className="charades-scoreboard">{state.teams.slice().sort((a, b) => b.score - a.score).map((team, index) => <div className="charades-leader-row" key={team.id}><span className="charades-rank">{index + 1}</span><span className="charades-leader-name">{team.name}<small>{team.correctAnswers} correct · {team.skippedPrompts} skips · best streak {team.longestStreak}</small></span><strong>{team.score}<small>PTS</small></strong></div>)}</div>
+      <div className="charades-scoreboard">{getLeaderboard(state.teams).map((team, index) => <div className={`charades-leader-row ${stats.winnerIds.includes(team.id) ? "is-winner" : ""}`} key={team.id}><span className="charades-rank">{index + 1}</span><span className="charades-leader-name">{team.name}<small>{team.correctAnswers} correct · {team.skippedPrompts} skips · best streak {team.longestStreak}</small></span><strong>{team.score}<small>PTS</small></strong></div>)}</div>
       <div className="charades-summary-stats"><span>{stats.accuracy}% accuracy</span><span>{stats.correct} correct</span><span>{stats.skips} skips</span>{stats.fastestCorrect !== null && <span>{stats.fastestCorrect}s fastest</span>}</div>
-      <div className="charades-result-actions"><button className="charades-button charades-button-primary" onClick={restart}><RotateCcw size={18}/> Play again</button><button className="charades-button charades-button-secondary" onClick={() => navigate("/")}>Return to PartyVerse</button><button className="charades-text-button" onClick={async () => { try { await navigator.clipboard.writeText(shareSummary); } catch { window.prompt("Copy results", shareSummary); } }}>Copy results</button></div>
+      <div className="charades-result-actions"><button className="charades-button charades-button-primary" onClick={restart}><RotateCcw size={18}/> Play again</button><button className="charades-button charades-button-secondary" onClick={() => navigate("/game/charades", { state: { players: state.game.players, era: state.game.era, difficulty: state.game.difficulty, roundCount: state.game.roundCount, turnDuration: state.game.turnDuration, teamMode: state.game.teamMode, teamCount: state.game.teamCount } })}>Back to setup</button><button className="charades-text-button" onClick={async () => { try { await navigator.clipboard.writeText(shareSummary); } catch { window.prompt("Copy results", shareSummary); } }}>Copy results</button></div>
     </section>}
 
     {pauseOpen && <div className="charades-modal-backdrop"><section className="charades-dialog" role="dialog" aria-modal="true" aria-labelledby="charades-dialog-title" aria-describedby="charades-dialog-copy" ref={dialogRef}>

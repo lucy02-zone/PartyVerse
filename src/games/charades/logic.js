@@ -11,6 +11,19 @@ export function createPowerUpInventory(source = {}) {
   ]));
 }
 
+export function createDefaultPlayers(players = null) {
+  return Array.isArray(players) && players.length >= 2 ? [...players] : ["Player 1", "Player 2"];
+}
+
+export function removePlayerFromRoster(players, index, minimum = 2) {
+  if (!Array.isArray(players) || players.length <= minimum || !Number.isInteger(index) || index < 0 || index >= players.length) return players || [];
+  return players.filter((_, playerIndex) => playerIndex !== index);
+}
+
+export function getLeaderboard(teams = []) {
+  return [...teams].sort((a, b) => b.score - a.score);
+}
+
 export function getTiltAction(delta, armed, now, lastAction, threshold = 22, cooldown = 1000) {
   if (Math.abs(delta) < 9) return "rearm";
   if (!armed || now - lastAction < cooldown) return null;
@@ -37,7 +50,7 @@ export function buildTeamAssignments(players = [], teamMode = "individual", team
   if (players.some((player) => typeof player !== "string" || !player.trim())) throw new Error("Player names must be non-empty text.");
   const names = players.map((player) => player.trim());
   if (new Set(names.map((name) => name.toLocaleLowerCase())).size !== names.length) throw new Error("Player names must be unique.");
-  if (names.length < 3 || names.length > 16) throw new Error("Charades requires 3 to 16 unique players.");
+  if (names.length < 2 || names.length > 16) throw new Error("Charades requires 2 to 16 unique players.");
   if (teamMode !== "teams") return names.map((name, i) => ({ id: `team-${i + 1}`, name, players: [name], score: 0, correctAnswers: 0, skippedPrompts: 0, streak: 0, longestStreak: 0, turnsPlayed: 0, inventory: createPowerUpInventory() }));
   const count = Math.min(Math.max(teamCount, 2), names.length, 6);
   return Array.from({ length: count }, (_, i) => ({ id: `team-${i + 1}`, name: `Team ${i + 1}`, players: [], score: 0, correctAnswers: 0, skippedPrompts: 0, streak: 0, longestStreak: 0, turnsPlayed: 0, inventory: createPowerUpInventory() })).map((team, i) => ({ ...team, players: names.filter((_, n) => n % count === i) }));
