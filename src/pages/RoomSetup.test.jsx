@@ -33,6 +33,15 @@ describe("shared player setup", () => {
     expect(markup).not.toContain(`Player ${minimum + 1}`);
   });
 
+  it("offers mission-based rules on the existing Undercover setup route", () => {
+    const markup = renderSetup("undercover");
+    expect(markup).toContain("Set your secret missions");
+    expect(markup).toContain("Mission settings");
+    expect(markup).toContain("Mission categories");
+    expect(markup).toContain("Accusation tokens");
+    expect(markup).toContain("Include optional round events");
+  });
+
   it("restores an existing roster and creates enough defaults for a stricter game", () => {
     expect(createDefaultPlayers(2, ["Rina", "Dev"])).toEqual(["Rina", "Dev"]);
     expect(createDefaultPlayers(3, ["Rina", "Dev"])).toEqual(["Player 1", "Player 2", "Player 3"]);

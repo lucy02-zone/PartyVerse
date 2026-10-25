@@ -76,6 +76,9 @@ export default function RoomSetup() {
   const [imposterConfig, setImposterConfig] = useState({
     category: "Mixed",
   });
+  const [undercoverConfig, setUndercoverConfig] = useState({
+    difficulty: "Standard", rounds: 3, categories: ["Social", "Sneaky", "Strategy", "Funny"], tokens: 2, duration: 180, events: true,
+  });
   const [charadesStep, setCharadesStep] = useState(0);
 
   useEffect(() => {
@@ -94,6 +97,7 @@ export default function RoomSetup() {
       teamCount: location.state?.teamCount || 2,
     });
     setImposterConfig({ category: location.state?.category || "Mixed" });
+    setUndercoverConfig({ difficulty: "Standard", rounds: 3, categories: ["Social", "Sneaky", "Strategy", "Funny"], tokens: 2, duration: 180, events: true });
   }, [gameId, location.key]);
 
   if (!game) {
@@ -197,8 +201,12 @@ export default function RoomSetup() {
     }
 
     if (gameId === "undercover") {
+      if (undercoverConfig.categories.length === 0) {
+        setMessage("Choose at least one mission category.");
+        return;
+      }
       navigate("/play/undercover", {
-        state: { players },
+        state: { players, undercoverConfig },
       });
       return;
     }
@@ -270,7 +278,7 @@ export default function RoomSetup() {
     <>
       <Navbar />
 
-      <main className={`setup-page ${gameId === "charades" ? "charades-setup" : ""} ${gameId === "imposter" ? "imposter-setup" : ""}`}>
+      <main className={`setup-page ${gameId === "charades" ? "charades-setup" : ""} ${gameId === "imposter" ? "imposter-setup" : ""} ${gameId === "undercover" ? "undercover-setup" : ""}`}>
         <Link to="/" className="back-link">
           <ArrowLeft size={17} />
           Back to games
@@ -285,9 +293,9 @@ export default function RoomSetup() {
             LET'S GET THE PARTY STARTED
           </span>
 
-          <h1>{gameId === "charades" ? "Build your Charades lobby" : gameId === "imposter" ? "Prepare the secret round" : "Set up your game"}</h1>
+          <h1>{gameId === "charades" ? "Build your Charades lobby" : gameId === "imposter" ? "Prepare the secret round" : gameId === "undercover" ? "Set your secret missions" : "Set up your game"}</h1>
 
-          <p>{gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : gameId === "imposter" ? `Gather ${limits.min}–${limits.max} players, choose a category, then pass the device for private roles.` : `Add or edit your players below. ${limits.min}–${limits.max} players can join.`}</p>
+          <p>{gameId === "charades" ? "Your players are ready. Add friends, choose your rules, and start playing." : gameId === "imposter" ? `Gather ${limits.min}–${limits.max} players, choose a category, then pass the device for private roles.` : gameId === "undercover" ? `Gather ${limits.min}–${limits.max} players, tune the mission deck, then pass the device for private briefings.` : `Add or edit your players below. ${limits.min}–${limits.max} players can join.`}</p>
         </section>
 
         <section className="setup-card">
@@ -443,6 +451,19 @@ export default function RoomSetup() {
               </div>
             </div>
           )}
+
+          {gameId === "undercover" && <div className="undercover-setup-options">
+            <div className="undercover-setup-options-heading"><span className="setup-label">MAKE IT YOURS</span><h2>Mission settings</h2><p>Choose the round’s pace and the kind of missions in the deck.</p></div>
+            <div className="undercover-setup-grid">
+              <label>Mission difficulty<select value={undercoverConfig.difficulty} onChange={(event) => setUndercoverConfig((current) => ({ ...current, difficulty: event.target.value }))}><option>Casual</option><option>Standard</option><option>Chaos</option></select></label>
+              <label>Rounds<select value={undercoverConfig.rounds} onChange={(event) => setUndercoverConfig((current) => ({ ...current, rounds: Number(event.target.value) }))}>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} {value === 1 ? "round" : "rounds"}</option>)}</select></label>
+              <label>Round timer<select value={undercoverConfig.duration} onChange={(event) => setUndercoverConfig((current) => ({ ...current, duration: Number(event.target.value) }))}><option value={0}>No timer</option><option value={120}>2 minutes</option><option value={180}>3 minutes</option><option value={300}>5 minutes</option></select></label>
+              <label>Accusation tokens<select value={undercoverConfig.tokens} onChange={(event) => setUndercoverConfig((current) => ({ ...current, tokens: Number(event.target.value) }))}>{[1, 2, 3].map((value) => <option key={value} value={value}>{value} per player</option>)}</select></label>
+            </div>
+            <fieldset className="undercover-category-options"><legend>Mission categories</legend>{["Social", "Sneaky", "Strategy", "Funny"].map((category) => <label key={category}><input type="checkbox" checked={undercoverConfig.categories.includes(category)} onChange={(event) => setUndercoverConfig((current) => ({ ...current, categories: event.target.checked ? [...current.categories, category] : current.categories.filter((item) => item !== category) }))} />{category}</label>)}</fieldset>
+            <label className="undercover-events-option"><input type="checkbox" checked={undercoverConfig.events} onChange={(event) => setUndercoverConfig((current) => ({ ...current, events: event.target.checked }))} /> Include optional round events</label>
+            <p className="undercover-setup-note">Each player receives a different mission every round. Social missions are claims reviewed together; recorded actions verify game missions.</p>
+          </div>}
 
           {gameId === "quiz" && (
             <div className="quiz-config">

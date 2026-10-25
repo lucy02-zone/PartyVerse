@@ -10,6 +10,11 @@ export function charadesResultSummary(winners, teams) {
 }
 
 export function undercoverResultSummary(result) {
+  if (Array.isArray(result?.winners) && Array.isArray(result?.leaderboard)) {
+    const winnerText = result.winners.length > 1 ? `${result.winners.join(" and ")} tied` : `${result.winners[0] || "The group"} won`;
+    const scores = result.leaderboard.map((player) => `${player.name}: ${player.score} points`).join(" · ");
+    return `PartyVerse Undercover · ${winnerText}${scores ? ` · ${scores}` : ""}`;
+  }
   const outcome = result.winner === "civilian" ? "Civilians won" : result.winner === "undercover" ? "Undercover won" : result.winner === "tie" ? "The vote was tied" : "Round complete";
   return `PartyVerse Undercover · ${outcome}${result.eliminated ? ` · ${result.eliminated} was eliminated` : ""}`;
 }
