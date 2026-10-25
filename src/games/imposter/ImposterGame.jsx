@@ -171,7 +171,7 @@ export default function ImposterGame() {
 
             <div className="secret-card">
               <div className={`secret-card-inner ${revealed ? "revealed" : ""}`}>
-                <div className="secret-card-face secret-card-front">
+                <div className="secret-card-face secret-card-front" aria-hidden={revealed} inert={revealed}>
                   <div className="secret-icon lock-image-wrap">
                     <img
                       src={lockImage}
@@ -195,7 +195,7 @@ export default function ImposterGame() {
                   </button>
                 </div>
 
-                <div className="secret-card-face secret-card-back">
+                <div className="secret-card-face secret-card-back" aria-hidden={!revealed} inert={!revealed}>
                   <span className="secret-icon">
                     {currentPlayer.role === "imposter" ? "IMP" : "OK"}
                   </span>
@@ -292,14 +292,16 @@ export default function ImposterGame() {
             </div>
 
             <div
-              className={`discussion-timer ${
-                seconds <= 10 ? "timer-warning" : ""
-              }`}
+              className={`discussion-timer ${seconds <= 10 ? "timer-warning" : ""} ${!timerRunning && seconds > 0 ? "timer-paused" : ""} ${seconds === 0 ? "timer-expired" : ""}`}
+              role="timer"
+              aria-label={`${formattedTime} remaining`}
             >
               <span className="timer-label">
                 <Clock size={14} />
                 TIME LEFT
               </span>
+
+              <span className="timer-state" role="status">{seconds === 0 ? "Time is up" : timerRunning ? "Timer running" : "Timer paused"}</span>
 
               <strong>{formattedTime}</strong>
 
