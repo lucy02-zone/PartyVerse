@@ -9,7 +9,7 @@ vi.mock("../../lib/supabase.js", () => ({
   requireSupabase: vi.fn(),
 }));
 
-import OnlineMafia, { OnlineMafiaPrivateRole } from "./OnlineMafia.jsx";
+import OnlineMafia, { OnlineMafiaLobbyRoster, OnlineMafiaPrivateRole, OnlineMafiaVotingTimer, PlayerTargetList } from "./OnlineMafia.jsx";
 
 function renderOnlineMafia() {
   return renderToStaticMarkup(createElement(MemoryRouter, null, createElement(OnlineMafia)));
@@ -91,5 +91,71 @@ describe("Online Mafia private role panel", () => {
     }));
     expect(markup).toContain("Investigation: Rae is not Mafia.");
     expect(markup).not.toContain("Mafia teammates");
+  });
+});
+
+describe("Online Mafia voting controls", () => {
+  it("renders eligible voting targets as accessible selectable buttons, not a dropdown", () => {
+    const markup = renderToStaticMarkup(createElement(PlayerTargetList, {
+      targets: [{ id: "p1", name: "Asha", alive: true }, { id: "p2", name: "Dev", alive: true }],
+      selectedId: "p2",
+      onSelect: vi.fn(),
+      label: "Select a player to vote for",
+      action: "vote",
+    }));
+    expect(markup).toContain('role="group" aria-label="Select a player to vote for"');
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain('aria-label="vote for Dev"');
+    expect(markup).not.toContain("<select");
+  });
+
+  it("marks eliminated targets disabled and communicates their state", () => {
+    const markup = renderToStaticMarkup(createElement(PlayerTargetList, {
+      targets: [{ id: "p1", name: "Asha", alive: false }],
+      selectedId: "",
+      onSelect: vi.fn(),
+      label: "Select a night-action target",
+      action: "night",
+    }));
+    expect(markup).toContain("disabled");
+    expect(markup).toContain("eliminated");
+    expect(markup).toContain(">Out</span>");
+  });
+
+  it("shows the shared deadline countdown with an urgency state at five seconds", () => {
+    const markup = renderToStaticMarkup(createElement(OnlineMafiaVotingTimer, { secondsLeft: 5 }));
+    expect(markup).toContain("Voting ends in 5s");
+    expect(markup).toContain('class="online-mafia-vote-timer urgent"');
+    expect(markup).toContain('role="progressbar"');
+  });
+});
+
+describe("Online Mafia lobby removal controls", () => {
+  const players = [
+    { id: "host", name: "Host", ready: true },
+    { id: "guest", name: "Guest", ready: false },
+  ];
+
+  it("shows remove controls only to the host and never beside the host", () => {
+    const hostMarkup = renderToStaticMarkup(createElement(OnlineMafiaLobbyRoster, {
+      players,
+      isHost: true,
+      myPlayerId: "host",
+      hostPlayerId: "host",
+      loading: false,
+      onRemove: vi.fn(),
+    }));
+    expect(hostMarkup).toContain('aria-label="Remove Guest from room"');
+    expect(hostMarkup).not.toContain('aria-label="Remove Host from room"');
+
+    const guestMarkup = renderToStaticMarkup(createElement(OnlineMafiaLobbyRoster, {
+      players,
+      isHost: false,
+      myPlayerId: "guest",
+      hostPlayerId: "host",
+      loading: false,
+      onRemove: vi.fn(),
+    }));
+    expect(guestMarkup).not.toContain("online-mafia-remove");
   });
 });

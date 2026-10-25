@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Copy, Moon, Shield, Sun, Users, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Copy, Moon, Shield, Sun, UserMinus, Users, Wifi, WifiOff } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
 import { isSupabaseConfigured, requireSupabase } from "../../lib/supabase.js";
 import { createFriendlyAuthError, isOnlineAuthUnavailable } from "./onlineAuth.js";
@@ -17,6 +17,10 @@ const safeActionErrorPatterns = [
   /^Mafia needs 5 to 15 players\.?$/i,
   /^Wait for every player to be ready\.?$/i,
   /^Only the host can start the game\.?$/i,
+  /^Only the room host can remove players\.?$/i,
+  /^The host cannot remove themselves\.?$/i,
+  /^Players can only be removed before the game starts\.?$/i,
+  /^Choose a player in this room to remove\.?$/i,
   /^The game has already started\.?$/i,
   /^(Lobby|Night actions|Day voting) (is|are) (closed|over)\.?$/i,
   /^Eliminated players cannot (act|vote)\.?$/i,
@@ -26,6 +30,8 @@ const safeActionErrorPatterns = [
   /^You cannot (investigate|vote for) yourself\.?$/i,
   /^The Mafia cannot target a teammate\.?$/i,
   /^Game state changed\. Refresh the room and try again\.?$/i,
+  /^The host removed you from this room\.?$/i,
+  /^Voting time is up\. Your vote was not counted\.?$/i,
 ];
 
 function messageForError(error) {
@@ -46,7 +52,10 @@ export default function OnlineMafia() {
   const [error, setError] = useState("");
   const [authUnavailable, setAuthUnavailable] = useState(false);
   const [connection, setConnection] = useState("offline");
+  const [secondsLeft, setSecondsLeft] = useState(0);
   const snapshotRef = useRef(null);
+  const timeoutRequestedForRef = useRef("");
+  const clockOffsetRef = useRef(0);
 
   const invoke = useCallback(async (command, payload = {}) => {
     const client = requireSupabase();
@@ -57,9 +66,11 @@ export default function OnlineMafia() {
       if (authError) throw createFriendlyAuthError(authError);
       if (!data.user) throw createFriendlyAuthError(new Error("Missing player session."));
     }
+    const requestStartedAt = Date.now();
     const { data, error: functionError } = await client.functions.invoke("mafia", {
       body: { command, payload },
     });
+    const responseReceivedAt = Date.now();
     if (functionError) {
       let functionMessage = "";
       if (functionError.context instanceof Response) {
@@ -73,8 +84,27 @@ export default function OnlineMafia() {
       throw new Error(messageForError(new Error(functionMessage)));
     }
     if (data?.error) throw new Error(messageForError(new Error(data.error)));
+    if (data?.serverTime) {
+      const serverTime = Date.parse(data.serverTime);
+      if (Number.isFinite(serverTime)) {
+        clockOffsetRef.current = serverTime - (requestStartedAt + responseReceivedAt) / 2;
+      }
+    }
     return data;
   }, []);
+
+  const handleRemovedFromRoom = useCallback(() => {
+    const removedCode = snapshotRef.current?.room?.code ?? code;
+    snapshotRef.current = null;
+    setSnapshot(null);
+    setRoomName("");
+    setEntryMode("join");
+    setCode(removedCode);
+    setAuthUnavailable(false);
+    setConnection("offline");
+    setError("The host removed you from this room. You can join a different room with a new code.");
+    setSearchParams({}, { replace: true });
+  }, [code, setSearchParams]);
 
   const refresh = useCallback(async (roomId = snapshotRef.current?.room?.id) => {
     if (!roomId) return;
@@ -91,6 +121,10 @@ export default function OnlineMafia() {
       setAuthUnavailable(false);
       setError("");
     } catch (refreshError) {
+      if (refreshError instanceof Error && /^The host removed you from this room\.?$/i.test(refreshError.message)) {
+        handleRemovedFromRoom();
+        return;
+      }
       const authenticationUnavailable = isOnlineAuthUnavailable(refreshError);
       setAuthUnavailable(authenticationUnavailable);
       if (authenticationUnavailable) {
@@ -100,7 +134,7 @@ export default function OnlineMafia() {
       setConnection(authenticationUnavailable ? "offline" : "reconnecting");
       setError(authenticationUnavailable ? "" : messageForError(refreshError));
     }
-  }, [invoke]);
+  }, [handleRemovedFromRoom, invoke]);
 
   useEffect(() => {
     if (!snapshot?.room?.id) return undefined;
@@ -143,6 +177,10 @@ export default function OnlineMafia() {
       setRoleRevealed(false);
       return next;
     } catch (commandError) {
+      if (commandError instanceof Error && /^The host removed you from this room\.?$/i.test(commandError.message)) {
+        handleRemovedFromRoom();
+        return null;
+      }
       const authenticationUnavailable = isOnlineAuthUnavailable(commandError);
       setAuthUnavailable(authenticationUnavailable);
       if (authenticationUnavailable) {
@@ -196,6 +234,12 @@ export default function OnlineMafia() {
     setSearchParams({}, { replace: true });
   }
 
+  async function removePlayer(item) {
+    const confirmed = window.confirm(`Remove ${item.name} from this room? They will not be able to rejoin with this session.`);
+    if (!confirmed) return;
+    await runCommand("remove_player", { roomId: snapshot.room.id, targetPlayerId: item.id });
+  }
+
   const player = snapshot?.players?.find((item) => item.id === snapshot.myPlayerId);
   const livingPlayers = snapshot?.players?.filter((item) => item.alive) ?? [];
   const targets = livingPlayers.filter((item) => {
@@ -206,6 +250,29 @@ export default function OnlineMafia() {
     return true;
   });
   const waiting = snapshot && snapshot.submittedCount < snapshot.requiredCount;
+  const votingDeadline = snapshot?.room?.votingDeadline ?? null;
+
+  useEffect(() => {
+    if (snapshot?.room?.phase !== "day" || !votingDeadline) {
+      return undefined;
+    }
+    const deadlineMs = Date.parse(votingDeadline);
+    if (!Number.isFinite(deadlineMs)) return undefined;
+    const updateCountdown = () => {
+      const remaining = Math.max(0, Math.ceil((deadlineMs - Date.now() - clockOffsetRef.current) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining === 0 && timeoutRequestedForRef.current !== votingDeadline) {
+        timeoutRequestedForRef.current = votingDeadline;
+        refresh(snapshot.room.id);
+      }
+    };
+    const initialTimer = window.setTimeout(updateCountdown, 0);
+    const timer = window.setInterval(updateCountdown, 200);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
+  }, [refresh, snapshot?.room?.id, snapshot?.room?.phase, votingDeadline]);
 
   return (
     <>
@@ -264,9 +331,14 @@ export default function OnlineMafia() {
             {snapshot.room.phase === "lobby" ? (
               <>
                 <div className="online-mafia-phase"><Users size={20} /><div><h2>Waiting room</h2><p>{snapshot.players.length} of 15 players · At least 5 players; everyone must be ready.</p></div></div>
-                <div className="online-mafia-roster">
-                  {snapshot.players.map((item) => <div className="online-mafia-player" key={item.id}><span className="online-mafia-avatar">{item.name.slice(0, 1).toUpperCase()}</span><span>{item.name}{item.id === snapshot.myPlayerId ? " (you)" : ""}{item.id === snapshot.hostPlayerId && <small>HOST</small>}</span><b className={item.ready ? "ready" : "not-ready"}>{item.ready ? "Ready" : "Joining"}</b></div>)}
-                </div>
+                <OnlineMafiaLobbyRoster
+                  players={snapshot.players}
+                  isHost={snapshot.isHost}
+                  myPlayerId={snapshot.myPlayerId}
+                  hostPlayerId={snapshot.hostPlayerId}
+                  loading={loading}
+                  onRemove={removePlayer}
+                />
                 <div className="online-mafia-actions">
                   <button className="mafia-secondary-button" disabled={loading} onClick={() => runCommand("ready", { roomId: snapshot.room.id, ready: !player?.ready })}>{player?.ready ? "I’m not ready" : "I’m ready"}</button>
                   {snapshot.isHost && <button className="mafia-primary-button" disabled={loading || snapshot.players.length < 5 || !snapshot.players.every((item) => item.ready)} onClick={() => runCommand("start", { roomId: snapshot.room.id })}>Start game</button>}
@@ -284,12 +356,13 @@ export default function OnlineMafia() {
                     teammates={snapshot.mafiaTeammates}
                     investigation={snapshot.investigation}
                   />
-                  {snapshot.room.phase === "night" && snapshot.yourRole !== "Villager" && !snapshot.hasSubmitted && player?.alive && <div className="online-mafia-action-box"><h3>{snapshot.yourRole === "Mafia" ? "Choose the town’s target" : snapshot.yourRole === "Doctor" ? "Choose someone to protect" : "Choose someone to investigate"}</h3><p>Your action is private. Mafia members coordinate through their submitted targets; the result is hidden until all night actions are in.</p><select value={targetId} onChange={(event) => setTargetId(event.target.value)} aria-label="Choose a player"><option value="">Choose a living player</option>{targets.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="mafia-primary-button" disabled={loading || !targetId} onClick={submitRoleAction}>Submit secret action</button></div>}
-                  {snapshot.room.phase === "day" && player?.alive && !snapshot.hasSubmitted && <div className="online-mafia-action-box"><h3>Vote to eliminate</h3><p>Discuss together, then submit one private vote. The result appears when everyone has voted.</p><select value={targetId} onChange={(event) => setTargetId(event.target.value)} aria-label="Vote for a player"><option value="">Choose a living player</option>{targets.filter((item) => item.id !== player.id).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="mafia-primary-button" disabled={loading || !targetId} onClick={submitVote}>Submit private vote</button></div>}
+                  {snapshot.room.phase === "day" && <OnlineMafiaVotingTimer secondsLeft={votingDeadline ? secondsLeft : 0} />}
+                  {snapshot.room.phase === "night" && snapshot.yourRole !== "Villager" && !snapshot.hasSubmitted && player?.alive && <div className="online-mafia-action-box"><h3>{snapshot.yourRole === "Mafia" ? "Choose the town’s target" : snapshot.yourRole === "Doctor" ? "Choose someone to protect" : "Choose someone to investigate"}</h3><p>{snapshot.yourRole === "Mafia" ? "Select a living player outside your Mafia team." : snapshot.yourRole === "Doctor" ? "Choose any living player, including yourself, to protect tonight." : "Choose another living player to investigate privately."}</p><PlayerTargetList targets={targets} selectedId={targetId} onSelect={setTargetId} label="Select a night-action target" action="night" /><button className="mafia-primary-button" disabled={loading || !targetId} onClick={submitRoleAction}>{loading ? "Submitting…" : "Submit night action"}</button></div>}
+                  {snapshot.room.phase === "day" && player?.alive && !snapshot.hasSubmitted && <div className="online-mafia-action-box"><h3>Vote to eliminate</h3><p>Discuss together, then submit one private vote. Votes stay private until the round resolves. You cannot vote for yourself.</p><PlayerTargetList targets={targets.filter((item) => item.id !== player.id)} selectedId={targetId} onSelect={setTargetId} label="Select a player to vote for" action="vote" /><button className="mafia-primary-button" disabled={loading || !targetId || secondsLeft <= 0} onClick={submitVote}>{loading ? "Submitting…" : "Submit vote"}</button></div>}
                   {(!player?.alive || snapshot.hasSubmitted || snapshot.yourRole === "Villager" && snapshot.room.phase === "night") && <p className="online-mafia-wait">{!player?.alive ? "You are out of the game. Stay and watch the round." : snapshot.hasSubmitted ? "Your submission is in. Waiting for the other players…" : "The town is asleep. Waiting for the night actions…"}</p>}
                   {waiting && <div className="online-mafia-progress" aria-live="polite">{snapshot.submittedCount} of {snapshot.requiredCount} submissions received · Waiting for other players</div>}
                 </>}
-                <div className="online-mafia-roster compact">{snapshot.players.map((item) => <div className="online-mafia-player" key={item.id}><span className="online-mafia-avatar">{item.name.slice(0, 1).toUpperCase()}</span><span>{item.name}{item.id === snapshot.myPlayerId ? " (you)" : ""}</span><b className={item.alive ? "ready" : "not-ready"}>{item.alive ? "In game" : "Out"}</b></div>)}</div>
+                <div className="online-mafia-roster compact">{snapshot.players.map((item) => <div className={`online-mafia-player${item.alive ? "" : " eliminated"}`} key={item.id}><span className="online-mafia-avatar">{item.name.slice(0, 1).toUpperCase()}</span><span>{item.name}{item.id === snapshot.myPlayerId ? " (you)" : ""}</span><b className={item.alive ? "ready" : "eliminated"}>{item.alive ? "In game" : "Out"}</b></div>)}</div>
                 {snapshot.finalRoles && <div className="online-mafia-final-roles"><h3>Final roles</h3>{snapshot.finalRoles.map((item) => <p key={item.playerId}><strong>{item.name}</strong><span>{item.role}{item.alive ? " · survived" : " · eliminated"}</span></p>)}</div>}
                 {snapshot.room.phase === "ended" && <button className="mafia-secondary-button" onClick={leaveRoom}>Leave room</button>}
               </>
@@ -345,5 +418,62 @@ export function OnlineMafiaPrivateRole({ role, revealed, onReveal, teammates = [
         {investigation && revealed && <p>Investigation: {investigation.playerName} is {investigation.isMafia ? "Mafia" : "not Mafia"}.</p>}
       </div>
     </section>
+  );
+}
+
+export function PlayerTargetList({ targets, selectedId, onSelect, label, action }) {
+  return (
+    <div className="online-mafia-target-list" role="group" aria-label={label}>
+      {targets.map((item) => {
+        const selected = selectedId === item.id;
+        const actionLabel = action === "vote" ? "vote for" : action === "night" ? "select" : "choose";
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className={`online-mafia-target${selected ? " selected" : ""}${item.alive ? "" : " eliminated"}`}
+            aria-label={`${actionLabel} ${item.name}${item.alive ? "" : ", eliminated"}`}
+            aria-pressed={selected}
+            disabled={!item.alive}
+            onClick={() => onSelect(item.id)}
+          >
+            <span className="online-mafia-avatar" aria-hidden="true">{item.name.slice(0, 1).toUpperCase()}</span>
+            <span className="online-mafia-target-name">{item.name}</span>
+            <span className="online-mafia-target-state">{selected ? "Selected" : item.alive ? "Choose" : "Out"}</span>
+          </button>
+        );
+      })}
+      {targets.length === 0 && <p className="online-mafia-no-targets">No eligible players are available.</p>}
+    </div>
+  );
+}
+
+export function OnlineMafiaVotingTimer({ secondsLeft }) {
+  const remaining = Math.max(0, Math.min(15, secondsLeft));
+  return (
+    <div className={`online-mafia-vote-timer${remaining <= 5 ? " urgent" : ""}`}>
+      <div className="online-mafia-vote-timer-copy">
+        <span className="section-kicker">DAY DISCUSSION</span>
+        <strong aria-live="polite" aria-atomic="true">Voting ends in {remaining}s</strong>
+      </div>
+      <div className="online-mafia-vote-progress" role="progressbar" aria-label="Voting time remaining" aria-valuemin="0" aria-valuemax="15" aria-valuenow={remaining}>
+        <span style={{ transform: `scaleX(${remaining / 15})` }} />
+      </div>
+    </div>
+  );
+}
+
+export function OnlineMafiaLobbyRoster({ players, isHost, myPlayerId, hostPlayerId, loading, onRemove }) {
+  return (
+    <div className="online-mafia-roster">
+      {players.map((item) => (
+        <div className="online-mafia-player" key={item.id}>
+          <span className="online-mafia-avatar">{item.name.slice(0, 1).toUpperCase()}</span>
+          <span>{item.name}{item.id === myPlayerId ? " (you)" : ""}{item.id === hostPlayerId && <small>HOST</small>}</span>
+          <b className={item.ready ? "ready" : "not-ready"}>{item.ready ? "Ready" : "Joining"}</b>
+          {isHost && item.id !== hostPlayerId && <button type="button" className="online-mafia-remove" aria-label={`Remove ${item.name} from room`} disabled={loading} onClick={() => onRemove(item)}><UserMinus size={17} aria-hidden="true" /><span>Remove</span></button>}
+        </div>
+      ))}
+    </div>
   );
 }
