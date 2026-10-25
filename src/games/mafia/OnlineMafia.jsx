@@ -3,12 +3,34 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Copy, Moon, Shield, Sun, Users, Wifi, WifiOff } from "lucide-react";
 import Navbar from "../../components/Navbar.jsx";
 import { isSupabaseConfigured, requireSupabase } from "../../lib/supabase.js";
-import { isAnonymousSignInDisabled } from "./onlineAuth.js";
+import { createFriendlyAuthError, isOnlineAuthUnavailable } from "./onlineAuth.js";
 
 const emptySnapshot = null;
 
+const temporarilyUnavailable = "Online Mafia is temporarily unavailable. Please try again shortly.";
+const safeActionErrorPatterns = [
+  /^Room not found\. Check the code and try again\.?$/i,
+  /^Enter a name from 1 to 30 characters\.?$/i,
+  /^That name is already in this room\.?$/i,
+  /^This room is full\.?$/i,
+  /^This game has already started or ended\.?$/i,
+  /^Mafia needs 5 to 15 players\.?$/i,
+  /^Wait for every player to be ready\.?$/i,
+  /^Only the host can start the game\.?$/i,
+  /^The game has already started\.?$/i,
+  /^(Lobby|Night actions|Day voting) (is|are) (closed|over)\.?$/i,
+  /^Eliminated players cannot (act|vote)\.?$/i,
+  /^Your role has no night action\.?$/i,
+  /^Your (night action|vote) has already been submitted\.?$/i,
+  /^Choose a living player in this room\.?$/i,
+  /^You cannot (investigate|vote for) yourself\.?$/i,
+  /^The Mafia cannot target a teammate\.?$/i,
+  /^Game state changed\. Refresh the room and try again\.?$/i,
+];
+
 function messageForError(error) {
-  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+  const message = error instanceof Error ? error.message : "";
+  return safeActionErrorPatterns.some((pattern) => pattern.test(message)) ? message : temporarilyUnavailable;
 }
 
 export default function OnlineMafia() {
@@ -22,30 +44,24 @@ export default function OnlineMafia() {
   const [roleRevealed, setRoleRevealed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [authSetupRequired, setAuthSetupRequired] = useState(false);
+  const [authUnavailable, setAuthUnavailable] = useState(false);
   const [connection, setConnection] = useState("offline");
   const snapshotRef = useRef(null);
 
   const invoke = useCallback(async (command, payload = {}) => {
     const client = requireSupabase();
-    let { data: sessionData } = await client.auth.getSession();
+    let { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if (sessionError) throw createFriendlyAuthError(sessionError);
     if (!sessionData.session) {
       const { data, error: authError } = await client.auth.signInAnonymously();
-      if (authError) {
-        if (isAnonymousSignInDisabled(authError)) {
-          const setupError = new Error("Anonymous sign-ins are disabled for this Supabase project.");
-          setupError.code = "anonymous_provider_disabled";
-          throw setupError;
-        }
-        throw authError;
-      }
-      if (!data.user) throw new Error("Could not create a player session. Please retry.");
+      if (authError) throw createFriendlyAuthError(authError);
+      if (!data.user) throw createFriendlyAuthError(new Error("Missing player session."));
     }
     const { data, error: functionError } = await client.functions.invoke("mafia", {
       body: { command, payload },
     });
     if (functionError) {
-      let functionMessage = functionError.message;
+      let functionMessage = "";
       if (functionError.context instanceof Response) {
         try {
           const responseBody = await functionError.context.json();
@@ -54,9 +70,9 @@ export default function OnlineMafia() {
           // Retain the SDK's transport error when the response is not JSON.
         }
       }
-      throw new Error(functionMessage || "Could not reach the Mafia server.");
+      throw new Error(messageForError(new Error(functionMessage)));
     }
-    if (data?.error) throw new Error(data.error);
+    if (data?.error) throw new Error(messageForError(new Error(data.error)));
     return data;
   }, []);
 
@@ -72,13 +88,17 @@ export default function OnlineMafia() {
       setSnapshot(next);
       setCode(next.room.code);
       setConnection("connected");
-      setAuthSetupRequired(false);
+      setAuthUnavailable(false);
       setError("");
     } catch (refreshError) {
-      const disabled = isAnonymousSignInDisabled(refreshError);
-      setAuthSetupRequired(disabled);
-      setConnection(disabled ? "offline" : "reconnecting");
-      setError(messageForError(refreshError));
+      const authenticationUnavailable = isOnlineAuthUnavailable(refreshError);
+      setAuthUnavailable(authenticationUnavailable);
+      if (authenticationUnavailable) {
+        snapshotRef.current = null;
+        setSnapshot(null);
+      }
+      setConnection(authenticationUnavailable ? "offline" : "reconnecting");
+      setError(authenticationUnavailable ? "" : messageForError(refreshError));
     }
   }, [invoke]);
 
@@ -112,21 +132,25 @@ export default function OnlineMafia() {
   async function runCommand(command, payload = {}) {
     setLoading(true);
     setError("");
-    setAuthSetupRequired(false);
     try {
       const next = await invoke(command, payload);
       snapshotRef.current = next;
       setSnapshot(next);
       setCode(next.room.code);
       setConnection("connected");
+      setAuthUnavailable(false);
       setTargetId("");
       setRoleRevealed(false);
       return next;
     } catch (commandError) {
-      const disabled = isAnonymousSignInDisabled(commandError);
-      setAuthSetupRequired(disabled);
-      setError(messageForError(commandError));
-      setConnection(disabled ? "offline" : "reconnecting");
+      const authenticationUnavailable = isOnlineAuthUnavailable(commandError);
+      setAuthUnavailable(authenticationUnavailable);
+      if (authenticationUnavailable) {
+        snapshotRef.current = null;
+        setSnapshot(null);
+      }
+      setError(authenticationUnavailable ? "" : messageForError(commandError));
+      setConnection(authenticationUnavailable ? "offline" : "reconnecting");
       return null;
     } finally {
       setLoading(false);
@@ -167,6 +191,7 @@ export default function OnlineMafia() {
     setCode("");
     setRoomName("");
     setEntryMode(null);
+    setAuthUnavailable(false);
     setAuthSetupRequired(false);
     setError("");
     setSearchParams({}, { replace: true });
@@ -195,11 +220,8 @@ export default function OnlineMafia() {
           <p>Everyone joins on their own device. Roles, actions, and votes stay server-side.</p>
         </header>
 
-        {!isSupabaseConfigured ? (
-          <section className="online-mafia-card" role="status">
-            <h2>Connect Supabase to play online</h2>
-            <p>Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> in your local <code>.env</code> file, then restart Vite.</p>
-          </section>
+        {!isSupabaseConfigured || authUnavailable ? (
+          <OnlineMafiaUnavailable />
         ) : !snapshot ? (
           <section className="online-mafia-card">
             <span className="section-kicker">START A GAME NIGHT</span>
@@ -269,9 +291,23 @@ export default function OnlineMafia() {
             )}
           </section>
         )}
-        {error && (authSetupRequired ? <section className="online-mafia-error" role="alert"><strong>Enable Anonymous Sign-Ins in Supabase</strong><p>Supabase returned <code>anonymous_provider_disabled</code> (HTTP 422). The game uses anonymous device sessions so players do not need full accounts.</p><p>In your Supabase Dashboard, open <strong>Authentication → Sign In / Providers → Anonymous Sign-Ins</strong> and enable it, then retry. For local Supabase, set <code>auth.enable_anonymous_sign_ins = true</code> in <code>supabase/config.toml</code>.</p><a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Open Supabase Dashboard</a> · <a href="https://supabase.com/docs/guides/auth/auth-anonymous" target="_blank" rel="noreferrer">Anonymous sign-in guide</a></section> : <p className="online-mafia-error" role="alert">{error}</p>)}
+        {error && <p className="online-mafia-error" role="alert">{error}</p>}
         {snapshot && <button type="button" className="online-mafia-leave" onClick={leaveRoom}>Leave room</button>}
       </main>
     </>
+  );
+}
+
+function OnlineMafiaUnavailable() {
+  return (
+    <section className="online-mafia-card online-mafia-unavailable" role="status" aria-live="polite">
+      <span className="section-kicker">ONLINE GAME NIGHT</span>
+      <h2>Online Mafia is taking a short break</h2>
+      <p>Online play is temporarily unavailable. Please try again in a little while, or keep the game night going with local play.</p>
+      <div className="online-mafia-unavailable-actions">
+        <button type="button" className="mafia-primary-button" onClick={() => window.location.reload()}>Try again</button>
+        <Link className="mafia-secondary-button" to="/game/mafia">Play local Mafia</Link>
+      </div>
+    </section>
   );
 }

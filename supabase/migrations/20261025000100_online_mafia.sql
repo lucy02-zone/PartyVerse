@@ -335,7 +335,7 @@ begin
         left join public.mafia_room_players p on p.room_id = v_room_id and p.id::text = x->>'playerId'
         where p.id is null
       ) then raise exception 'Role assignment does not match this room.'; end if;
-      if (select count(*) from jsonb_array_elements(v_roles) x where x->>'role' = 'Mafia') <> case when v_count < 7 then 1 when v_count < 11 then 2 else 3 end
+      if (select count(*) from jsonb_array_elements(v_roles) x where x->>'role' = 'Mafia') <> (case when v_count < 7 then 1 when v_count < 11 then 2 else 3 end)
         or (select count(*) from jsonb_array_elements(v_roles) x where x->>'role' = 'Doctor') <> 1
         or (select count(*) from jsonb_array_elements(v_roles) x where x->>'role' = 'Detective') <> 1
         or (select count(*) from jsonb_array_elements(v_roles) x where x->>'role' = 'Villager') <> v_count - (case when v_count < 7 then 1 when v_count < 11 then 2 else 3 end) - 2

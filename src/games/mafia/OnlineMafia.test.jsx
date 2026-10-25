@@ -3,7 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
-vi.mock("../../lib/supabase.js", () => ({ isSupabaseConfigured: true, requireSupabase: vi.fn() }));
+const supabaseMock = vi.hoisted(() => ({ configured: true }));
+vi.mock("../../lib/supabase.js", () => ({
+  get isSupabaseConfigured() { return supabaseMock.configured; },
+  requireSupabase: vi.fn(),
+}));
 
 import OnlineMafia from "./OnlineMafia.jsx";
 
@@ -23,5 +27,19 @@ describe("Online Mafia entry screen", () => {
     const markup = renderOnlineMafia();
     expect(markup).toContain("Everyone joins on their own device.");
     expect(markup).not.toContain("service_role");
+  });
+
+  it("shows a friendly unavailable state without configuration diagnostics", () => {
+    supabaseMock.configured = false;
+    try {
+      const markup = renderOnlineMafia();
+      expect(markup).toContain("Online Mafia is taking a short break");
+      expect(markup).toContain("Try again");
+      expect(markup).toContain('href="/game/mafia"');
+      expect(markup).not.toContain("VITE_SUPABASE");
+      expect(markup).not.toContain("configuration");
+    } finally {
+      supabaseMock.configured = true;
+    }
   });
 });

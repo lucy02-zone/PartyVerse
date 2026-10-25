@@ -7,11 +7,47 @@ The Realtime publication contains only `mafia_rooms` and `mafia_room_players`. B
 ## Configure a Supabase project
 
 1. Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. These are browser-safe project settings. Never put a service-role key in a `VITE_` variable or frontend file.
-2. In Supabase Dashboard, open **Authentication → Sign In / Providers → Anonymous Sign-Ins** (the exact label may vary by Dashboard version) and enable anonymous sign-ins. The observed `422 anonymous_provider_disabled` error is returned by `auth.signInAnonymously()` when this provider is disabled; it is a project Auth configuration error, not a room-code or Edge Function error. The client detects this response and gives setup instructions instead of showing a generic connection failure. No full account is required. For local Supabase, `config.toml` enables `auth.enable_anonymous_sign_ins = true`; this does not change the hosted project's setting. Each browser's persisted Auth session identifies the device for reconnection.
+2. In Supabase Dashboard, open **Authentication → Sign In / Providers → Anonymous Sign-Ins** (the exact label may vary by Dashboard version) and enable anonymous sign-ins. The observed `422 anonymous_provider_disabled` error is returned by `auth.signInAnonymously()` when this provider is disabled; it is a project Auth configuration error, not a room-code or Edge Function error. The client detects this response and displays a plain unavailable state while keeping local Mafia available. No full account is required. For local Supabase, `config.toml` enables `auth.enable_anonymous_sign_ins = true`; this does not change the hosted project's setting. Each browser's persisted Auth session identifies the device for reconnection.
 3. Install the Supabase CLI, authenticate, link this repository to the intended project, and review both migrations before applying them with `supabase db push`. The second migration revokes direct browser execution of the private snapshot projection; apply it even if the original migration is already present.
-4. Deploy the function with `supabase functions deploy mafia`. Keep JWT verification enabled (`config.toml`); the hosted function receives its Supabase URL and service-role credential from the Supabase runtime environment.
+4. Deploy the function with the CLI commands below. The gateway JWT check is disabled for this one function so unauthenticated browser `OPTIONS` preflights can reach the handler; all `POST` commands still require a bearer token validated with Supabase Auth `getUser`, followed by server-side room and role authorization. Never remove those checks.
 5. Run the SQL security suite with `supabase test db`. The test suite verifies RLS, client table grants, safe Realtime row shapes, and RPC execution grants.
 6. In a non-production Supabase project, manually verify two different anonymous sessions can create/join, ready, start, reveal only their own role, submit role actions/votes, and reconnect by room code after reload.
+
+## Production frontend environment (Vercel)
+
+The previously shared production hostname uses `vercel.app`. This repository has no checked-in Vercel project manifest or linked project metadata, so its Vercel project settings cannot be verified here. In the Vercel project dashboard, open **Settings → Environment Variables** and configure these exact build-time variables for **Production** (and **Preview** if preview deployments should support Online Mafia):
+
+- `VITE_SUPABASE_URL` — the Supabase project's public HTTPS URL.
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — the Supabase publishable key (or legacy anon public key).
+
+Save the values and create a fresh deployment so Vite embeds the new public configuration into the site bundle. Do not configure a service-role/secret key under either name or in any `VITE_` variable. The frontend validates these settings before enabling room creation/joining and displays a friendly unavailable state otherwise. A deployment is not verified until a fresh Vercel deployment is tested against the configured Supabase project.
+
+## Edge Function CORS and deployment verification
+
+The function accepts these exact browser origins by default: `http://localhost:5173`, `http://127.0.0.1:5173`, and `https://partyverse-gules.vercel.app`. Additional exact origins can be supplied as the comma-separated server-only Edge Function variable `MAFIA_ALLOWED_ORIGINS`. Do not add paths or trailing slashes. The function does not use wildcard origins or credentialed CORS.
+
+Run from the repository root after installing and authenticating the Supabase CLI. Replace the placeholder with the project's reference (do not put a service-role key in a command):
+
+```sh
+supabase link --project-ref <project-ref>
+supabase db push --project-ref <project-ref>
+supabase functions deploy mafia --project-ref <project-ref> --no-verify-jwt
+```
+
+`supabase/config.toml` sets `verify_jwt = false` for this function to let the preflight reach its immediate `OPTIONS` response. This is not anonymous access to game actions: the handler rejects missing/invalid bearer tokens before parsing commands, then uses the authenticated user ID for authorization and the database state machine. Review this distinction before deploying.
+
+Start the local Supabase stack and function with `supabase start` and `supabase functions serve mafia`. In a second terminal, verify the local preflight:
+
+```sh
+curl -i -X OPTIONS http://127.0.0.1:54321/functions/v1/mafia \
+  -H 'Origin: http://localhost:5173' \
+  -H 'Access-Control-Request-Method: POST' \
+  -H 'Access-Control-Request-Headers: authorization, apikey, content-type, x-client-info'
+```
+
+Expect `204`, `Access-Control-Allow-Origin: http://localhost:5173`, methods `POST, OPTIONS`, and allowed headers including all four requested headers. Verify an unlisted origin gets a non-success response and no `Access-Control-Allow-Origin`. Then test an authenticated create/join through the app; preflight success alone does not prove the function or database is deployed correctly.
+
+Repeat the preflight against `https://<project-ref>.supabase.co/functions/v1/mafia` with `Origin: https://partyverse-gules.vercel.app`, then test an authenticated game flow on the deployed site. A 404 indicates the function is missing or the project URL is wrong; a 503 may be a boot/import failure or the handler's missing server configuration; a 401/403 may be a stale gateway configuration or an unlisted origin. Check `sb-error-code` and Supabase **Functions → Logs** to distinguish platform responses from handler responses.
 
 ## Current verification boundary
 
