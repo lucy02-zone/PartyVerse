@@ -192,7 +192,6 @@ export default function OnlineMafia() {
     setRoomName("");
     setEntryMode(null);
     setAuthUnavailable(false);
-    setAuthSetupRequired(false);
     setError("");
     setSearchParams({}, { replace: true });
   }
@@ -278,7 +277,13 @@ export default function OnlineMafia() {
               <>
                 <div className="online-mafia-round"><span className="section-kicker">ROUND {snapshot.room.roundNumber}</span><h2>{snapshot.room.phase === "night" ? <><Moon size={21} /> Night phase</> : snapshot.room.phase === "day" ? <><Sun size={21} /> Day discussion</> : `${snapshot.room.winner} wins!`}</h2><p>{snapshot.room.publicResult}</p></div>
                 {snapshot.room.phase !== "ended" && <>
-                  <div className="online-mafia-phase online-mafia-private"><Shield size={19} /><div><span className="section-kicker">PRIVATE TO YOU</span>{roleRevealed ? <h2>{snapshot.yourRole}</h2> : <button type="button" className="online-mafia-reveal" onClick={() => setRoleRevealed(true)}>Reveal my role</button>}{snapshot.yourRole === "Mafia" && roleRevealed && snapshot.mafiaTeammates?.length > 0 && <p>Mafia teammates: {snapshot.mafiaTeammates.map((mate) => mate.name).join(", ")}</p>}{snapshot.investigation && <p>Investigation: {snapshot.investigation.playerName} is {snapshot.investigation.isMafia ? "Mafia" : "not Mafia"}.</p>}</div></div>
+                  <OnlineMafiaPrivateRole
+                    role={snapshot.yourRole}
+                    revealed={roleRevealed}
+                    onReveal={() => setRoleRevealed(true)}
+                    teammates={snapshot.mafiaTeammates}
+                    investigation={snapshot.investigation}
+                  />
                   {snapshot.room.phase === "night" && snapshot.yourRole !== "Villager" && !snapshot.hasSubmitted && player?.alive && <div className="online-mafia-action-box"><h3>{snapshot.yourRole === "Mafia" ? "Choose the town’s target" : snapshot.yourRole === "Doctor" ? "Choose someone to protect" : "Choose someone to investigate"}</h3><p>Your action is private. Mafia members coordinate through their submitted targets; the result is hidden until all night actions are in.</p><select value={targetId} onChange={(event) => setTargetId(event.target.value)} aria-label="Choose a player"><option value="">Choose a living player</option>{targets.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="mafia-primary-button" disabled={loading || !targetId} onClick={submitRoleAction}>Submit secret action</button></div>}
                   {snapshot.room.phase === "day" && player?.alive && !snapshot.hasSubmitted && <div className="online-mafia-action-box"><h3>Vote to eliminate</h3><p>Discuss together, then submit one private vote. The result appears when everyone has voted.</p><select value={targetId} onChange={(event) => setTargetId(event.target.value)} aria-label="Vote for a player"><option value="">Choose a living player</option>{targets.filter((item) => item.id !== player.id).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="mafia-primary-button" disabled={loading || !targetId} onClick={submitVote}>Submit private vote</button></div>}
                   {(!player?.alive || snapshot.hasSubmitted || snapshot.yourRole === "Villager" && snapshot.room.phase === "night") && <p className="online-mafia-wait">{!player?.alive ? "You are out of the game. Stay and watch the round." : snapshot.hasSubmitted ? "Your submission is in. Waiting for the other players…" : "The town is asleep. Waiting for the night actions…"}</p>}
@@ -307,6 +312,37 @@ function OnlineMafiaUnavailable() {
       <div className="online-mafia-unavailable-actions">
         <button type="button" className="mafia-primary-button" onClick={() => window.location.reload()}>Try again</button>
         <Link className="mafia-secondary-button" to="/game/mafia">Play local Mafia</Link>
+      </div>
+    </section>
+  );
+}
+
+const roleDescriptions = {
+  Mafia: "Work together at night to choose a target. Stay convincing during the day.",
+  Doctor: "Choose one living player to protect from the Mafia each night. You may protect yourself.",
+  Detective: "Investigate one living player each night and keep the result private.",
+  Villager: "Discuss clues with the town and vote to find and eliminate the Mafia.",
+};
+
+export function OnlineMafiaPrivateRole({ role, revealed, onReveal, teammates = [], investigation }) {
+  return (
+    <section className="online-mafia-phase online-mafia-private" aria-label="Your private role">
+      <Shield className="online-mafia-private-icon" size={22} aria-hidden="true" />
+      <div className="online-mafia-private-copy">
+        <span className="section-kicker">PRIVATE TO YOU</span>
+        {revealed ? (
+          <>
+            <h2>{role}</h2>
+            <p>{roleDescriptions[role] ?? "Your role will guide your choices during the game."}</p>
+          </>
+        ) : (
+          <>
+            <p>Your role is only visible on this device. Reveal it when you are ready.</p>
+            <button type="button" className="online-mafia-reveal" onClick={onReveal}>Reveal my role</button>
+          </>
+        )}
+        {role === "Mafia" && revealed && teammates.length > 0 && <p>Mafia teammates: {teammates.map((mate) => mate.name).join(", ")}</p>}
+        {investigation && revealed && <p>Investigation: {investigation.playerName} is {investigation.isMafia ? "Mafia" : "not Mafia"}.</p>}
       </div>
     </section>
   );
