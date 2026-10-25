@@ -2,4 +2,6 @@
 enable_anonymous_sign_ins = true
 
 [functions.mafia]
-verify_jwt = true
+# OPTIONS preflight requests have no user Authorization token. The Edge
+# Function validates auth.getUser(token) on every POST before any command.
+verify_jwt = false

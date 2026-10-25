@@ -2937,6 +2937,24 @@ body:has(.online-mafia-page) .navbar .nav-cta:hover { background: #8F4F38; }
 .online-mafia-final-roles span { color: #60483E; }
 .online-mafia-error { border-color: var(--online-mafia-terracotta); color: #5E3023; background: #F4DDD1; }
 .online-mafia-error a { color: #80452F; }
+.online-mafia-unavailable h2 { margin-bottom: 8px; color: var(--online-mafia-espresso); }
+.online-mafia-unavailable > p { color: #60483E; }
+.online-mafia-unavailable-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.online-mafia-unavailable-actions .mafia-primary-button,
+.online-mafia-unavailable-actions .mafia-secondary-button {
+  width: auto;
+  min-width: 150px;
+  margin: 0;
+  border: 1px solid var(--online-mafia-terracotta);
+  color: var(--online-mafia-cream);
+  background: var(--online-mafia-terracotta);
+  box-shadow: none;
+  text-decoration: none;
+}
+.online-mafia-unavailable-actions .mafia-secondary-button { color: var(--online-mafia-espresso); background: var(--online-mafia-cream); }
+.online-mafia-unavailable-actions .mafia-primary-button:hover,
+.online-mafia-unavailable-actions .mafia-secondary-button:hover { transform: translateY(-1px); background: #8F4F38; }
+.online-mafia-unavailable-actions .mafia-secondary-button:hover { color: var(--online-mafia-cream); }
 .online-mafia-leave { color: #704532; }
 .online-mafia-page :is(button, a, input, select):focus-visible { outline: 3px solid var(--online-mafia-terracotta); outline-offset: 3px; }
 .online-mafia-card button:disabled { opacity: .58; }
